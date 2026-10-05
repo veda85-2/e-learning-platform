@@ -21,7 +21,7 @@ function Loading() {
         backgroundImage: `url(${background})`,
       }}
     >
-      {/* ================= NAVBAR ================= */}
+     
       <nav
         className="
           relative
@@ -64,42 +64,9 @@ function Loading() {
           </span>
         </div>
 
-        {/* Desktop Navigation */}
-        <div
-          className="
-            hidden
-            items-center
-            gap-8
-            text-base
-            md:flex
-            lg:gap-12
-            lg:text-lg
-          "
-        >
-          <a
-            href="#"
-            className="transition-opacity hover:opacity-60"
-          >
-            About
-          </a>
-
-          <a
-            href="#"
-            className="transition-opacity hover:opacity-60"
-          >
-            Courses
-          </a>
-
-          <a
-            href="#"
-            className="transition-opacity hover:opacity-60"
-          >
-            Contact
-          </a>
-        </div>
+       
       </nav>
 
-      {/* ================= MAIN CONTENT ================= */}
       <main
         className="
           relative
@@ -122,7 +89,6 @@ function Loading() {
           lg:-mt-10
         "
       >
-        {/* ================= LEFT CONTENT ================= */}
         <section
           className="
             w-full
@@ -226,7 +192,7 @@ function Loading() {
           </button>
         </section>
 
-        {/* ================= WINNER IMAGE ================= */}
+      
         <section
           className="
             flex
@@ -259,7 +225,7 @@ function Loading() {
         </section>
       </main>
 
-      {/* ================= FEATURE CARDS ================= */}
+    
       <section
         className="
           relative
@@ -308,7 +274,7 @@ function Loading() {
   );
 }
 
-/* ================= FEATURE CARD ================= */
+
 
 function FeatureCard({ icon, title, subtitle }) {
   return (

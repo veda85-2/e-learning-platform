@@ -58,14 +58,14 @@ const handleLogin = async (e) => {
       );
     }
 
-    // Save authentication
+   
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(user));
 
     console.log("TOKEN SAVED:", token);
     console.log("REDIRECTING TO DASHBOARD...");
 
-    // Redirect
+  
     navigate("/dashboard", { replace: true });
 
   } catch (err) {
@@ -84,7 +84,7 @@ const handleLogin = async (e) => {
   return (
     <div className="h-screen w-full overflow-hidden bg-white flex">
 
-      {/* ================= LEFT IMAGE ================= */}
+   
       <div
         className="
           hidden
@@ -104,7 +104,7 @@ const handleLogin = async (e) => {
         />
       </div>
 
-      {/* ================= RIGHT LOGIN ================= */}
+  
       <div
         className="
           flex
@@ -120,7 +120,7 @@ const handleLogin = async (e) => {
         "
       >
 
-        {/* LOGIN CARD */}
+    
         <div
           className="
             w-full
@@ -136,12 +136,12 @@ const handleLogin = async (e) => {
           "
         >
 
-          {/* ================= TITLE ================= */}
+     
           <h1 className="text-center text-2xl font-bold text-black sm:text-3xl">
             Login
           </h1>
 
-          {/* ================= FORM ================= */}
+      
           <form
             onSubmit={handleLogin}
             className="mt-5 space-y-3.5 sm:mt-6 sm:space-y-4"
@@ -189,7 +189,7 @@ const handleLogin = async (e) => {
 
             </div>
 
-            {/* PASSWORD */}
+          
             <div className="relative">
 
               <Lock
@@ -303,7 +303,6 @@ const handleLogin = async (e) => {
 
           </form>
 
-          {/* ================= OR ================= */}
           <div className="my-5 flex items-center gap-3 sm:my-6">
 
             <div className="h-px flex-1 bg-gray-300" />
@@ -316,7 +315,6 @@ const handleLogin = async (e) => {
 
           </div>
 
-          {/* ================= GOOGLE ================= */}
           <button
             type="button"
             onClick={() => setError("Google sign-in is not configured by the supplied backend API.")}
@@ -335,7 +333,7 @@ const handleLogin = async (e) => {
 
           </button>
 
-          {/* ================= APPLE ================= */}
+         
           <button
             type="button"
             onClick={() => setError("Apple sign-in is not configured by the supplied backend API.")}
@@ -354,7 +352,6 @@ const handleLogin = async (e) => {
 
           </button>
 
-          {/* ================= GUEST ================= */}
           <button
             type="button"
             onClick={() => setError("Guest access is not available because the dashboard API requires authentication.")}
@@ -374,7 +371,7 @@ const handleLogin = async (e) => {
 
           </button>
 
-          {/* ================= SIGN UP ================= */}
+      
           <p className="mt-4 text-center text-xs text-gray-600 sm:mt-5 sm:text-sm">
 
             Don't have an account?{" "}

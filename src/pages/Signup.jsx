@@ -95,7 +95,6 @@ function Signup() {
         />
       </div>
 
-      {/* ================= RIGHT SIDE ================= */}
       <div
         className="
           flex
@@ -233,7 +232,7 @@ function Signup() {
               </button>
             </div>
 
-            {/* CONFIRM PASSWORD */}
+          
             <div className="relative">
               <Lock
                 size={17}

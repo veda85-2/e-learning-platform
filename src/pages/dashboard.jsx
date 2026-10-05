@@ -52,11 +52,6 @@ import {
 
 import "./dashboard.css";
 
-/*
-=========================================================
-DEFAULT ANALYTICS
-=========================================================
-*/
 
 const defaultAnalytics = {
   enrolledCoursesCount: 0,
@@ -71,11 +66,7 @@ const defaultAnalytics = {
   learning_resources: 0,
 };
 
-/*
-=========================================================
-DASHBOARD
-=========================================================
-*/
+
 
 function Dashboard() {
   const navigate =
@@ -107,11 +98,6 @@ function Dashboard() {
   const [sidebarOpen, setSidebarOpen] =
     useState(false);
 
-  /*
-  =======================================================
-  USER
-  =======================================================
-  */
 
   const user = useMemo(() => {
     try {
@@ -241,11 +227,7 @@ function Dashboard() {
       );
     }
 
-    /*
-    -------------------------------------------------------
-    MY COURSES
-    -------------------------------------------------------
-    */
+   
 
     try {
       const response =
@@ -286,12 +268,7 @@ function Dashboard() {
       setEnrolledCourses([]);
     }
 
-    /*
-    -------------------------------------------------------
-    ALL COURSES
-    -------------------------------------------------------
-    */
-
+   
     try {
       const response =
         await API.get(
@@ -334,12 +311,7 @@ function Dashboard() {
     setLoading(false);
   }
 
-  /*
-  =======================================================
-  LOAD AI RECOMMENDATIONS
-  =======================================================
-  */
-
+ 
   async function loadRecommendations() {
     if (
       !enrolledCourses.length
@@ -381,11 +353,7 @@ function Dashboard() {
         mlAnalytics
       );
 
-      /*
-      -----------------------------------------------------
-      CALL ML
-      -----------------------------------------------------
-      */
+     
 
       const mlResults =
         await getCourseRecommendations({
@@ -399,11 +367,7 @@ function Dashboard() {
         mlResults
       );
 
-      /*
-      -----------------------------------------------------
-      FILTER AGAINST REAL LMS COURSES
-      -----------------------------------------------------
-      */
+    
 
       let filtered =
         filterRecommendations({
@@ -425,11 +389,7 @@ function Dashboard() {
         filtered
       );
 
-      /*
-      -----------------------------------------------------
-      IF MODEL RETURNS ONLY PYTHON / INVALID RESULT
-      -----------------------------------------------------
-      */
+    
 
       const onlyPython =
         filtered.length > 0 &&
@@ -489,12 +449,7 @@ function Dashboard() {
         err
       );
 
-      /*
-      -----------------------------------------------------
-      ML FAILED → FALLBACK
-      -----------------------------------------------------
-      */
-
+    
       const fallback =
         getFallbackRecommendations({
           currentCourse,
@@ -529,23 +484,12 @@ function Dashboard() {
     }
   }
 
-  /*
-  =======================================================
-  INITIAL LOAD
-  =======================================================
-  */
-
+ 
   useEffect(() => {
     loadDashboard();
   }, []);
 
-  /*
-  =======================================================
-  RECOMMENDATIONS
 
-  Wait until all course data is available.
-  =======================================================
-  */
 
   useEffect(() => {
     if (
@@ -562,11 +506,6 @@ function Dashboard() {
     analytics,
   ]);
 
-  /*
-  =======================================================
-  LOGOUT
-  =======================================================
-  */
 
   function logout() {
     localStorage.removeItem(
@@ -585,12 +524,7 @@ function Dashboard() {
     );
   }
 
-  /*
-  =======================================================
-  COMPLETION
-  =======================================================
-  */
-
+ 
   const dashboardCompletion =
     getCompletionRate(
       analytics
@@ -638,11 +572,6 @@ function Dashboard() {
       ? dashboardCompletion
       : calculatedCompletion;
 
-  /*
-  =======================================================
-  STATS
-  =======================================================
-  */
 
   const averageQuizScore =
     Math.max(
@@ -673,12 +602,7 @@ function Dashboard() {
       availableCourses.length,
   };
 
-  /*
-  =======================================================
-  PIE DATA
-  =======================================================
-  */
-
+ 
   const pieData = [
     {
       name: "Completed",
@@ -694,11 +618,6 @@ function Dashboard() {
     },
   ];
 
-  /*
-  =======================================================
-  UI
-  =======================================================
-  */
 
   return (
     <div className="app">
@@ -833,11 +752,7 @@ function Dashboard() {
   );
 }
 
-/*
-=========================================================
-SIDEBAR
-=========================================================
-*/
+
 
 function Sidebar({
   open,
@@ -969,11 +884,6 @@ function Sidebar({
   );
 }
 
-/*
-=========================================================
-HEADER
-=========================================================
-*/
 
 function Header({
   notificationCount,
@@ -1022,11 +932,6 @@ function Header({
   );
 }
 
-/*
-=========================================================
-STATS
-=========================================================
-*/
 
 function Stats({ stats }) {
   const items = [
@@ -1104,11 +1009,7 @@ function Stats({ stats }) {
   );
 }
 
-/*
-=========================================================
-COURSES
-=========================================================
-*/
+
 
 function Courses({
   courses,
@@ -1295,11 +1196,7 @@ function Courses({
   );
 }
 
-/*
-=========================================================
-PIE CHART
-=========================================================
-*/
+
 
 function TimeSpending({
   data,
@@ -1432,11 +1329,7 @@ function TimeSpending({
   );
 }
 
-/*
-=========================================================
-AI RECOMMENDATIONS
-=========================================================
-*/
+
 
 function Others({
   recommendations,
@@ -1561,11 +1454,7 @@ function Others({
   );
 }
 
-/*
-=========================================================
-CALENDAR
-=========================================================
-*/
+
 
 function LiveClasses() {
   const [month, setMonth] =
@@ -1826,11 +1715,7 @@ function LiveClasses() {
   );
 }
 
-/*
-=========================================================
-PANEL HEADER
-=========================================================
-*/
+
 
 function PanelHeader({
   title,

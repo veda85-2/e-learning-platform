@@ -109,10 +109,7 @@ export default function Profile() {
     loadProfile();
   }, []);
 
-  // =====================================================
-  // LOGOUT
-  // =====================================================
-
+  
   function logout() {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -121,10 +118,6 @@ export default function Profile() {
       replace: true,
     });
   }
-
-  // =====================================================
-  // EDIT PROFILE
-  // =====================================================
 
  function openEdit() {
   if (!profile) return;
@@ -157,9 +150,7 @@ export default function Profile() {
     }));
   }
 
-  // =====================================================
-  // SAVE PROFILE
-  // =====================================================
+
 async function saveProfile(e) {
   e.preventDefault();
 
@@ -233,10 +224,7 @@ async function saveProfile(e) {
   }
 }
 
-  // =====================================================
-  // PROFILE HELPERS
-  // =====================================================
-
+  
   const fullName =
     profile?.fullName ||
     profile?.name ||
@@ -278,9 +266,7 @@ async function saveProfile(e) {
       .slice(0, 2)
       .toUpperCase();
 
-  // =====================================================
-  // SIDEBAR
-  // =====================================================
+  
 
   const menuItems = [
     {
@@ -315,9 +301,6 @@ async function saveProfile(e) {
    
   ];
 
-  // =====================================================
-  // UI
-  // =====================================================
 
   return (
     <div className="profile-app">
@@ -333,9 +316,7 @@ async function saveProfile(e) {
         />
       )}
 
-      {/* =================================================
-          SIDEBAR
-      ================================================= */}
+  
 
       <aside
         className={`profile-sidebar ${
@@ -416,9 +397,7 @@ async function saveProfile(e) {
       </aside>
 
 
-      {/* =================================================
-          MAIN
-      ================================================= */}
+ 
 
       <main className="profile-main">
 
@@ -503,9 +482,6 @@ async function saveProfile(e) {
 
             <>
 
-              {/* =================================================
-                  PROFILE HERO
-              ================================================= */}
 
               <section className="profile-hero">
 
@@ -575,11 +551,6 @@ async function saveProfile(e) {
                 </div>
 
               </section>
-
-
-              {/* =================================================
-                  MAIN PROFILE GRID
-              ================================================= */}
 
               <div className="profile-grid">
 
@@ -788,9 +759,6 @@ async function saveProfile(e) {
       </main>
 
 
-      {/* =================================================
-          EDIT PROFILE MODAL
-      ================================================= */}
 
       {editOpen && (
         <div className="edit-modal-overlay">
@@ -933,9 +901,6 @@ async function saveProfile(e) {
 }
 
 
-// =====================================================
-// PROFILE FIELD
-// =====================================================
 
 function ProfileField({
   label,
@@ -963,10 +928,6 @@ function ProfileField({
   );
 }
 
-
-// =====================================================
-// OVERVIEW ITEM
-// =====================================================
 
 function OverviewItem({
   icon,
@@ -1007,10 +968,6 @@ function OverviewItem({
   );
 }
 
-
-// =====================================================
-// STAR ICON
-// =====================================================
 
 function StarIcon() {
   return (
