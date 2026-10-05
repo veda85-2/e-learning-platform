@@ -1,0 +1,1087 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  color: #151515;
+  background: #f5f5fa;
+}
+
+body {
+  margin: 0;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  background: #f5f5fa;
+}
+
+/* =========================
+   Sidebar
+========================= */
+
+.sidebar {
+  width: 252px;
+  min-height: 100vh;
+  padding: 48px 30px 35px;
+  display: flex;
+  flex-direction: column;
+ background: #fff;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 20;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 42px;
+}
+
+.brand-logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #101719;
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.brand > span {
+  color: #00aaa0;
+  font-size: 19px;
+  font-weight: 500;
+}
+
+.brand > span span {
+  color: #242424;
+}
+
+.navigation {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 11px 0;
+  color: #101010;
+  font-size: 14px;
+  text-align: left;
+}
+
+.nav-item:hover {
+  
+  background: #2ed8a5b1;
+  height: 50%;
+  width: 100%;
+  border-radius: 5px;
+  padding-left: 10px;
+}
+
+.upgrade-button {
+  margin-top: auto;
+  width: 100%;
+  height: 39px;
+  background: #edbd3a3d;
+  color: #111;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 5px;
+}
+
+.sidebar-close {
+  display: none;
+}
+
+/* =========================
+   Main
+========================= */
+
+.main {
+  width: calc(100% - 252px);
+  margin-left: 252px;
+  min-height: 100vh;
+}
+
+.header {
+  height: 100px;
+  padding: 25px 28px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.search-box {
+  height: 44px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 17px;
+  background: white;
+  border-radius: 12px;
+  color: #aaa;
+}
+
+.search-box input {
+  width: 100%;
+  border: none;
+  outline: none;
+  font-size: 15px;
+}
+
+.header-actions {
+  height: 44px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  background: white;
+  border-radius: 12px;
+}
+
+.notification {
+  position: relative;
+}
+
+.notification-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 15px;
+  height: 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  background: #ff3838;
+  color: white;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.profile {
+  display: flex;
+  color: #aaa;
+}
+
+.mobile-menu {
+  display: none;
+}
+
+/* =========================
+   Content
+========================= */
+
+.content {
+  padding: 7px 28px 35px;
+}
+
+.content > h1 {
+  margin: 0 0 17px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.stats-grid {
+  display: flex;
+  /* grid-template-rows: repeat(4, 1fr); */
+  gap: 40px;
+  margin-bottom: 21px;
+}
+
+.stat-card {
+  min-height: 85px;
+  width: 100%;
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  border-radius: 7px;
+}
+
+.stat-card p {
+  margin: 0 0 5px;
+  max-width: 100px;
+  font-size: 13px;
+  line-height: 14px;
+}
+
+.stat-card strong {
+  font-size: 18px;
+}
+
+.stat-icon {
+  width: 47px;
+  height: 47px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+}
+
+.stat-icon.orange {
+  background: #ffe6d2;
+  color: #ff934c;
+}
+
+.stat-icon.green {
+  background: #d8f7df;
+  color: #35bf67;
+}
+
+.stat-icon.blue {
+  background: #d7edff;
+  color: #5caeff;
+}
+
+.stat-icon.pink {
+  background: #ffd9df;
+  color: #ff5e70;
+}
+
+/* =========================
+   Dashboard Grid
+========================= */
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: 20px;
+}
+
+.left-column {
+  min-width: 0;
+}
+
+.panel {
+  background: white;
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+.panel-header {
+  height: 40px;
+  padding: 0 17px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #bcbcbc;
+}
+
+.panel-header h2,
+.live-header h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.panel-header button {
+  color: #aaa;
+  font-size: 12px;
+}
+
+/* =========================
+   Courses
+========================= */
+
+.courses-panel {
+  margin-bottom: 20px;
+}
+
+.course-row {
+  min-height: 71px;
+  padding: 10px 17px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  border-bottom: 1px solid #bdbdbd;
+}
+
+.course-row:last-child {
+  border-bottom: 0;
+}
+
+.course-icon {
+  width: 39px;
+  height: 39px;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 7px;
+  background: #d5f7f5;
+  font-size: 21px;
+}
+
+.course-info {
+  min-width: 150px;
+  flex: 1;
+}
+
+.course-info strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
+.course-info span {
+  color: #aaa;
+  font-size: 12px;
+}
+
+.progress-container {
+  width: 205px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.progress {
+  height: 4px;
+  flex: 1;
+  background: #cef1ef;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-value {
+  height: 100%;
+  background: #05c7bc;
+  border-radius: inherit;
+}
+
+.progress-container > span {
+  width: 29px;
+  color: #00a89f;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.play-button {
+  color: #aaa;
+}
+
+/* =========================
+   Bottom
+========================= */
+
+.bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.08fr;
+  gap: 20px;
+}
+
+.spending-panel,
+.others-panel {
+  min-height: 240px;
+}
+
+.chart-wrapper {
+  height: 200px;
+}
+
+/* =========================
+   Others
+========================= */
+
+.recommendation {
+  min-height: 67px;
+  padding: 13px 20px;
+  display: flex;
+  align-items: center;
+  gap: 19px;
+  border-bottom: 1px solid #bbb;
+  color: #08c5bb;
+}
+
+.recommendation:last-child {
+  border-bottom: 0;
+}
+
+.recommendation > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.recommendation strong {
+  color: #171717;
+  font-size: 13px;
+}
+
+.recommendation span {
+  color: #aaa;
+  font-size: 12px;
+}
+
+/* =========================
+   Live Classes
+========================= */
+
+.live-header {
+  height: 40px;
+  padding: 0 15px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #aaa;
+}
+
+.calendar {
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid #aaa;
+}
+
+.calendar-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+}
+
+.calendar-controls button {
+  color: #222;
+}
+
+.calendar-controls select {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 3px 7px;
+  background: white;
+  font-size: 12px;
+}
+
+.calendar-title {
+  display: none;
+}
+
+.weekdays,
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+}
+
+.weekdays {
+  margin-top: 12px;
+  margin-bottom: 7px;
+  color: #999;
+  font-size: 9px;
+}
+
+.calendar-days button,
+.empty-day {
+  height: 31px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.calendar-days button {
+  width: 31px;
+  justify-self: center;
+  border-radius: 7px;
+}
+
+.calendar-days button.today {
+  background: #282828;
+  color: white;
+}
+
+.class-item {
+  min-height: 60px;
+  padding: 9px 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #bbb;
+}
+
+.class-item:last-child {
+  border-bottom: 0;
+}
+
+.class-item > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.class-item strong {
+  font-size: 13px;
+}
+
+.class-item span {
+  color: #aaa;
+  font-size: 12px;
+}
+
+.class-item > svg {
+  color: #aaa;
+}
+
+.live-badge {
+  padding: 6px 12px;
+  background: #ff3f3f;
+  color: white !important;
+  font-size: 10px !important;
+  font-weight: 700;
+  border-radius: 3px;
+}
+
+/* =========================
+   API
+========================= */
+
+.api-warning {
+  margin: 0 28px 10px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff4df;
+  border: 1px solid #ffd895;
+  border-radius: 6px;
+  color: #765400;
+  font-size: 13px;
+}
+
+.api-warning button {
+  color: #008f88;
+  font-weight: 700;
+}
+
+.loading-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: #00c7bd;
+  animation: loading 1s infinite;
+}
+
+@keyframes loading {
+  0% {
+    opacity: 0.2;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.2;
+  }
+}
+
+/* =========================
+   Mobile
+========================= */
+
+@media (max-width: 1100px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .live-panel {
+    order: -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+  }
+
+  .sidebar.sidebar-open {
+    transform: translateX(0);
+  }
+
+  .sidebar-close {
+    display: block;
+    position: absolute;
+    right: 15px;
+    top: 15px;
+  }
+
+  .mobile-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 15;
+    background: rgba(0, 0, 0, 0.3);
+  }
+
+  .main {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .header {
+    height: 75px;
+    padding: 15px;
+  }
+
+  .mobile-menu {
+    display: flex;
+    align-items: center;
+  }
+
+  .header-actions {
+    padding: 0 8px;
+  }
+
+  .profile {
+    display: none;
+  }
+
+  .content {
+    padding: 5px 15px 25px;
+  }
+
+  .stats-grid {
+    gap: 10px;
+  }
+
+  .stat-card {
+    padding: 12px;
+  }
+
+  .bottom-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .course-row {
+    gap: 10px;
+  }
+
+  .progress-container {
+    width: 130px;
+  }
+}
+
+@media (max-width: 520px) {
+  .search-box {
+    min-width: 0;
+  }
+}
+
+.header-actions {
+  background: transparent;
+  padding: 0;
+}
+
+.stats-grid {
+  grid-template-columns: 1fr;
+}
+
+.stat-card {
+  min-height: 70px;
+}
+
+.dashboard-grid {
+  gap: 14px;
+}
+
+.course-row {
+  flex-wrap: wrap;
+}
+
+.course-info {
+  min-width: calc(100% - 60px);
+}
+
+.progress-container {
+  width: calc(100% - 45px);
+  margin-left: 48px;
+}
+
+.play-button {
+  margin-left: auto;
+  margin-top: -35px;
+}
+
+.api-warning {
+  margin: 0 15px 10px;
+}
+
+/* Backend-driven dashboard additions */
+
+.welcome-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 17px;
+}
+
+.dashboard-eyebrow {
+  margin: 0 0 3px;
+  color: #08aaa0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.welcome-row h1 {
+  margin: 0;
+}
+
+.logout-inline,
+.sidebar-logout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.logout-inline {
+  padding: 9px 13px;
+  border-radius: 10px;
+  background: #fff;
+  color: #555;
+}
+
+.sidebar-logout {
+  margin-top: 10px;
+  width: 100%;
+  padding: 9px;
+  color: #111;
+  font-size: 13px;
+}
+
+.course-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #d7fbf8, #6de1d7);
+  color: #087d77;
+}
+
+.panel-empty {
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #8b8b8b;
+  font-size: 14px;
+  text-align: center;
+}
+
+.panel-empty button {
+  color: #08aaa0;
+  font-weight: 700;
+}
+
+.chart-caption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: -7px;
+}
+
+.chart-caption strong {
+  font-size: 22px;
+}
+
+.chart-caption span {
+  color: #888;
+  font-size: 12px;
+}
+
+.simple-page {
+  min-height: 100vh;
+  background: #f5f5fa;
+  color: #151515;
+}
+
+.simple-header {
+  min-height: 78px;
+  padding: 16px 28px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.simple-header button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #555;
+  font-size: 14px;
+}
+
+.simple-brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #00aaa0;
+  font-size: 19px;
+  font-weight: 500;
+}
+
+.simple-brand > span:last-child {
+  color: #242424;
+}
+
+.simple-content {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 42px 28px 60px;
+}
+
+.simple-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.eyebrow {
+  margin: 0 0 5px;
+  color: #08aaa0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.simple-content h1 {
+  margin: 0;
+  font-size: 30px;
+}
+
+.simple-subtitle {
+  color: #777;
+  max-width: 700px;
+  line-height: 1.6;
+}
+
+.simple-search {
+  width: 330px;
+  height: 44px;
+  background: #fff;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  color: #999;
+}
+
+.simple-search input {
+  border: 0;
+  outline: 0;
+  width: 100%;
+  background: transparent;
+}
+
+.course-grid,
+.recommendation-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.course-card,
+.recommendation-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0 5px 22px rgba(0, 0, 0, 0.04);
+}
+
+.course-card-icon {
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 13px;
+  background: #d8f7f3;
+  color: #08aaa0;
+}
+
+.course-category {
+  display: inline-block;
+  margin-top: 18px;
+  color: #08aaa0;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.course-card h2,
+.recommendation-card h2 {
+  margin: 8px 0;
+  font-size: 19px;
+}
+
+.course-card p,
+.recommendation-card p {
+  color: #777;
+  font-size: 13px;
+  line-height: 1.6;
+  min-height: 42px;
+}
+
+.course-card-footer {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.course-card-footer button,
+.recommend-form button {
+  background: #08bfae;
+  color: #fff;
+  padding: 10px 15px;
+  border-radius: 9px;
+  font-weight: 700;
+}
+
+.course-card-footer button.enrolled {
+  background: #e8f7f4;
+  color: #08aaa0;
+}
+
+.simple-error,
+.simple-message {
+  margin-bottom: 18px;
+  padding: 12px 15px;
+  border-radius: 12px;
+  font-size: 13px;
+}
+
+.simple-error {
+  background: #fff0f0;
+  color: #c33;
+}
+
+.simple-message {
+  background: #e9faf6;
+  color: #087d70;
+}
+
+.simple-error button {
+  margin-left: 10px;
+  text-decoration: underline;
+}
+
+.simple-empty {
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  color: #888;
+  background: #fff;
+  border-radius: 18px;
+}
+
+.recommend-form {
+  display: flex;
+  gap: 12px;
+  max-width: 700px;
+  margin: 25px 0;
+}
+
+.recommend-form select {
+  flex: 1;
+  height: 46px;
+  padding: 0 13px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.recommend-form button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.recommendation-card > svg {
+  color: #08aaa0;
+}
+
+.recommendation-card small {
+  color: #999;
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  .course-grid,
+  .recommendation-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .simple-title-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .simple-search {
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .simple-header {
+    padding: 14px 16px;
+  }
+
+  .simple-content {
+    padding: 28px 16px 45px;
+  }
+
+  .course-grid,
+  .recommendation-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .recommend-form {
+    flex-direction: column;
+  }
+}
