@@ -197,7 +197,7 @@ function Notes() {
           </button>
 
           <button
-            className="notes-nav-item active"
+            className="notes-nav-item"
           >
             <Bookmark size={19} />
             <span>Course Recommendations</span>

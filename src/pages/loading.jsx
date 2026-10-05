@@ -1,6 +1,6 @@
 
 import background from "../assets/green.png";
-import winner from "../assets/winner.png";
+import winner from "../assets/winner.jpeg";
 import { useNavigate } from "react-router-dom";
 
 function Loading() {
@@ -211,7 +211,8 @@ function Loading() {
             alt="Learning achievement"
             className="
              max-w-250
-              mb-30
+              mt-20
+              rounded-4xl
               // w-80
              
               object-contain

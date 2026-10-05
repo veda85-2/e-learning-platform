@@ -27,52 +27,66 @@ function Signup() {
   const [loading, setLoading] = useState(false);
 
   const handleSignup = async (e) => {
-    e.preventDefault();
-    setError("");
+  e.preventDefault();
+  setError("");
 
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
+  // Validation
+  if (!name.trim()) {
+    setError("Please enter your full name.");
+    return;
+  }
 
-    if (!name.trim()) {
-      setError("Please enter your full name.");
-      return;
-    }
+  if (!email.trim()) {
+    setError("Please enter your email.");
+    return;
+  }
 
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters long.");
-      return;
-    }
+  if (password.length < 8) {
+    setError("Password must be at least 8 characters long.");
+    return;
+  }
 
-    setLoading(true);
+  if (password !== confirmPassword) {
+    setError("Passwords do not match.");
+    return;
+  }
 
-    try {
-      const { data } = await API.post("/auth/signup", {
-        name: name.trim(),
+  setLoading(true);
+
+  try {
+    const response = await API.post("/auth/signup", {
+      name: name.trim(),
+      email: email.trim().toLowerCase(),
+      password,
+    });
+
+    console.log("SIGNUP RESPONSE:", response.data);
+
+    // Signup successful
+    // No token required here if your backend only creates the account.
+    setLoading(false);
+
+    // Go to login page
+    navigate("/login", {
+      replace: true,
+      state: {
+        message: "Account created successfully. Please login.",
         email: email.trim().toLowerCase(),
-        password,
-      });
+      },
+    });
 
-      if (!data?.success || !data?.token) {
-        throw new Error(data?.message || "Signup failed. Please try again.");
-      }
+  } catch (err) {
+    console.error("Signup error:", err);
 
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user || {}));
-      navigate("/dashboard", { replace: true });
-    } catch (err) {
-      console.error("Signup error:", err);
-      setError(
-        err.response?.data?.message ||
-          err.message ||
-          "Unable to connect to the server. Please check your connection."
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+    setError(
+      err.response?.data?.message ||
+      err.message ||
+      "Unable to connect to the server. Please check your connection."
+    );
 
+    setLoading(false);
+  }
+};
   return (
     <div className="flex h-screen w-full overflow-hidden bg-white">
 
