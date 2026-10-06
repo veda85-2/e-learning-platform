@@ -20,7 +20,6 @@ import { courses } from "./data/courses";
 
 import {
   getCourseRecommendations,
-  getAnalytics,
   getCourseTitle,
   normalizeCourseName,
 } from "./services/CoursePredictionApi";
@@ -29,19 +28,45 @@ import "./recommendations.css";
 
 
 export default function CourseRecommendations() {
+
   const navigate = useNavigate();
+
+
+  /* =====================================================
+     SIDEBAR
+  ===================================================== */
 
   const [sidebarOpen, setSidebarOpen] =
     useState(false);
 
+
+  /* =====================================================
+     ENROLLED COURSES
+  ===================================================== */
+
   const [enrolled, setEnrolled] =
     useState([]);
+
+
+  /* =====================================================
+     CURRENT COURSE
+  ===================================================== */
 
   const [currentCourse, setCurrentCourse] =
     useState("");
 
+
+  /* =====================================================
+     RECOMMENDATIONS
+  ===================================================== */
+
   const [recommendations, setRecommendations] =
     useState([]);
+
+
+  /* =====================================================
+     LOADING
+  ===================================================== */
 
   const [loadingCourses, setLoadingCourses] =
     useState(true);
@@ -49,26 +74,44 @@ export default function CourseRecommendations() {
   const [loadingRecommendations, setLoadingRecommendations] =
     useState(false);
 
+
+  /* =====================================================
+     ERROR
+  ===================================================== */
+
   const [error, setError] =
     useState("");
 
 
   /* =====================================================
-     LOAD ENROLLED COURSES
+     LOAD USER'S ENROLLED COURSES
   ===================================================== */
 
   useEffect(() => {
+
     let active = true;
 
+
     async function loadCourses() {
+
       try {
+
         setLoadingCourses(true);
+
         setError("");
+
 
         const response =
           await API.get(
             "/enrollments/my-courses"
           );
+
+
+        console.log(
+          "✅ MY COURSES API RESPONSE:",
+          response.data
+        );
+
 
         const data =
           response.data?.data ??
@@ -76,22 +119,43 @@ export default function CourseRecommendations() {
           response.data ??
           [];
 
+
         const list =
           Array.isArray(data)
             ? data
             : [];
 
+
         if (!active) return;
+
 
         setEnrolled(list);
 
+
+        /*
+        ---------------------------------------------------
+        SET FIRST ENROLLED COURSE
+        ---------------------------------------------------
+        */
+
         if (list.length > 0) {
+
+          const firstCourse =
+            getCourseTitle(
+              list[0]
+            );
+
+
           setCurrentCourse(
-            getCourseTitle(list[0])
+            firstCourse
           );
         }
+
+
       } catch (err) {
+
         if (!active) return;
+
 
         console.error(
           "❌ COURSES ERROR:",
@@ -99,22 +163,35 @@ export default function CourseRecommendations() {
             err.message
         );
 
+
         setError(
           err.response?.data?.message ||
             "Unable to load your enrolled courses."
         );
+
+
       } finally {
+
         if (active) {
+
           setLoadingCourses(false);
+
         }
+
       }
+
     }
+
 
     loadCourses();
 
+
     return () => {
+
       active = false;
+
     };
+
   }, []);
 
 
@@ -122,81 +199,103 @@ export default function CourseRecommendations() {
      GET AI RECOMMENDATIONS
   ===================================================== */
 
-  async function getRecommendations(
-    event
-  ) {
+  async function getRecommendations(event) {
+
     event?.preventDefault();
 
+
+    /*
+    -------------------------------------------------------
+    CHECK CURRENT COURSE
+    -------------------------------------------------------
+    */
+
     if (!currentCourse) {
+
       setError(
         "Please enroll in at least one course first."
       );
+
       return;
     }
 
+
     try {
+
       setLoadingRecommendations(true);
+
       setError("");
+
       setRecommendations([]);
+
+
+      console.log(
+        "================================="
+      );
+
+      console.log(
+        "🤖 STARTING AI RECOMMENDATION"
+      );
 
       console.log(
         "📚 CURRENT COURSE:",
         currentCourse
       );
 
-
-      /* -----------------------------------------------
-         GET STUDENT ANALYTICS
-      ------------------------------------------------ */
-
-      const dashboardResponse =
-        await API.get(
-          "/dashboard"
-        );
-
-      const dashboardData =
-        dashboardResponse.data?.data ??
-        dashboardResponse.data ??
-        {};
-
       console.log(
-        "📊 DASHBOARD DATA:",
-        dashboardData
+        "================================="
       );
 
 
-      /* -----------------------------------------------
-         NORMALIZE ANALYTICS
+      /*
+      =====================================================
+      CALL BACKEND ML PROXY
+      =====================================================
 
-         Missing values become 0.
-         We DO NOT block the ML request.
-      ------------------------------------------------ */
+      IMPORTANT:
 
-      const analytics =
-        getAnalytics(
-          dashboardData
-        );
+      We DO NOT call /dashboard here.
 
-      console.log(
-        "📊 ML ANALYTICS:",
-        analytics
-      );
+      We DO NOT calculate ML analytics here.
 
+      Backend will get:
 
-      /* -----------------------------------------------
-         CALL ML API
-      ------------------------------------------------ */
+      - mean_score
+      - assessment_count
+      - course_score
+      - total_clicks
+      - active_days
+      - learning_resources
+
+      from MongoDB.
+
+      React only sends:
+
+      {
+        current_course: "HTML & CSS"
+      }
+
+      =====================================================
+      */
+
 
       const results =
         await getCourseRecommendations({
           currentCourse,
-          analytics,
         });
 
 
-      /* -----------------------------------------------
-         FIND ALREADY ENROLLED COURSES
-      ------------------------------------------------ */
+      console.log(
+        "🤖 RAW ML RESULTS:",
+        results
+      );
+
+
+      /*
+      =====================================================
+      FILTER RESULTS
+      =====================================================
+      */
 
       const enrolledNames =
         new Set(
@@ -211,67 +310,245 @@ export default function CourseRecommendations() {
         );
 
 
-      /* -----------------------------------------------
-         REMOVE COURSES ALREADY ENROLLED
-      ------------------------------------------------ */
+      const currentCourseName =
+        normalizeCourseName(
+          currentCourse
+        ).toLowerCase();
+
+
+      /*
+      -----------------------------------------------------
+      GET AVAILABLE LMS COURSES
+      -----------------------------------------------------
+      */
+
+      const availableCoursesMap =
+        new Map();
+
+
+      courses.forEach(
+        (course) => {
+
+          const title =
+            getCourseTitle(course);
+
+
+          if (!title) return;
+
+
+          availableCoursesMap.set(
+            normalizeCourseName(
+              title
+            ).toLowerCase(),
+            title
+          );
+
+        }
+      );
+
+
+      /*
+      -----------------------------------------------------
+      FILTER ML RESULTS
+      -----------------------------------------------------
+      */
 
       const filtered =
         results
-          .filter(
-            (item) =>
-              !enrolledNames.has(
-                normalizeCourseName(
-                  item.course
-                ).toLowerCase()
-              )
-          )
-          .slice(0, 10);
+          .filter((item) => {
 
+            const recommendationName =
+              normalizeCourseName(
+                item?.course
+              ).toLowerCase();
+
+
+            /*
+            No course name
+            */
+
+            if (!recommendationName) {
+              return false;
+            }
+
+
+            /*
+            Don't recommend
+            current course
+            */
+
+            if (
+              recommendationName ===
+              currentCourseName
+            ) {
+              return false;
+            }
+
+
+            /*
+            Don't recommend
+            already enrolled course
+            */
+
+            if (
+              enrolledNames.has(
+                recommendationName
+              )
+            ) {
+              return false;
+            }
+
+
+            /*
+            Course must actually
+            exist in LMS
+            */
+
+            if (
+              !availableCoursesMap.has(
+                recommendationName
+              )
+            ) {
+              console.warn(
+                "⚠️ ML recommended course not found in LMS:",
+                item?.course
+              );
+
+              return false;
+            }
+
+
+            return true;
+
+          })
+
+          .map((item) => {
+
+            const normalized =
+              normalizeCourseName(
+                item.course
+              ).toLowerCase();
+
+
+            return {
+
+              course:
+                availableCoursesMap.get(
+                  normalized
+                ),
+
+              probability:
+                Number(
+                  item?.probability || 0
+                ),
+
+              source:
+                item?.source ||
+                "ml",
+
+            };
+
+          })
+
+          /*
+          Highest probability first
+          */
+
+          .sort(
+            (a, b) =>
+              b.probability -
+              a.probability
+          )
+
+          /*
+          Maximum 5 recommendations
+          */
+
+          .slice(0, 5);
+
+
+      console.log(
+        "✅ FINAL ML RECOMMENDATIONS:",
+        filtered
+      );
+
+
+      /*
+      =====================================================
+      SET RESULTS
+      =====================================================
+      */
 
       setRecommendations(
         filtered
       );
 
 
-      if (
-        filtered.length === 0
-      ) {
+      /*
+      -----------------------------------------------------
+      NO VALID RESULTS
+      -----------------------------------------------------
+      */
+
+      if (filtered.length === 0) {
+
         setError(
           "The AI service did not return another eligible course."
         );
+
       }
 
+
     } catch (err) {
+
       console.error(
         "❌ RECOMMENDATION ERROR:",
         err
       );
 
+
+      /*
+      -----------------------------------------------------
+      SHOW ERROR
+      -----------------------------------------------------
+      */
+
       setRecommendations([]);
 
+
       setError(
-        err.message ||
-          "Unable to get AI recommendations."
+        err?.message ||
+        "Unable to get AI course recommendations."
       );
+
+
     } finally {
+
       setLoadingRecommendations(
         false
       );
+
     }
+
   }
 
 
   /* =====================================================
-     AUTOMATIC RECOMMENDATION
+     AUTOMATICALLY LOAD RECOMMENDATIONS
+     WHEN COURSE IS AVAILABLE
   ===================================================== */
 
   useEffect(() => {
+
     if (
       !loadingCourses &&
       currentCourse
     ) {
+
       getRecommendations();
+
     }
+
   }, [
     loadingCourses,
     currentCourse,
@@ -285,10 +562,12 @@ export default function CourseRecommendations() {
   function openRecommendedCourse(
     courseName
   ) {
+
     const normalized =
       normalizeCourseName(
         courseName
       );
+
 
     const course =
       courses.find(
@@ -299,16 +578,21 @@ export default function CourseRecommendations() {
           normalized.toLowerCase()
       );
 
+
     if (!course) {
+
       setError(
         `Course "${courseName}" is not available in the LMS.`
       );
+
       return;
     }
+
 
     navigate(
       `/course/${course.id}`
     );
+
   }
 
 
@@ -317,6 +601,7 @@ export default function CourseRecommendations() {
   ===================================================== */
 
   function logout() {
+
     localStorage.removeItem(
       "token"
     );
@@ -325,20 +610,23 @@ export default function CourseRecommendations() {
       "user"
     );
 
+
     navigate(
       "/login",
       {
         replace: true,
       }
     );
+
   }
 
 
   /* =====================================================
-     SIDEBAR
+     MENU ITEMS
   ===================================================== */
 
   const menuItems = [
+
     {
       icon: Grid2X2,
       label: "Dashboard",
@@ -369,11 +657,18 @@ export default function CourseRecommendations() {
       label: "My Profile",
       path: "/profile",
     },
+
   ];
 
 
+  /* =====================================================
+     UI
+  ===================================================== */
+
   return (
+
     <div className="recommendation-layout">
+
 
       {/* =================================================
           SIDEBAR
@@ -387,6 +682,9 @@ export default function CourseRecommendations() {
         }`}
       >
 
+
+        {/* CLOSE MOBILE SIDEBAR */}
+
         <button
           className="recommendation-mobile-menu"
           onClick={() =>
@@ -398,7 +696,10 @@ export default function CourseRecommendations() {
         </button>
 
 
+        {/* BRAND */}
+
         <div className="recommendation-brand">
+
           <div className="recommendation-brand-logo">
             ES
           </div>
@@ -409,8 +710,11 @@ export default function CourseRecommendations() {
               sphere
             </span>
           </div>
+
         </div>
 
+
+        {/* NAVIGATION */}
 
         <nav className="recommendation-nav">
 
@@ -421,6 +725,7 @@ export default function CourseRecommendations() {
               path,
               active,
             }) => (
+
               <button
                 key={label}
                 className={
@@ -429,22 +734,31 @@ export default function CourseRecommendations() {
                     : ""
                 }
                 onClick={() => {
+
                   navigate(path);
+
                   setSidebarOpen(
                     false
                   );
+
                 }}
               >
+
                 <Icon size={18} />
+
                 <span>
                   {label}
                 </span>
+
               </button>
+
             )
           )}
 
         </nav>
 
+
+        {/* PREMIUM */}
 
         <button
           className="recommendation-premium"
@@ -458,12 +772,17 @@ export default function CourseRecommendations() {
         </button>
 
 
+        {/* LOGOUT */}
+
         <button
           className="recommendation-logout"
           onClick={logout}
         >
+
           <LogOut size={16} />
+
           Logout
+
         </button>
 
       </aside>
@@ -475,9 +794,17 @@ export default function CourseRecommendations() {
 
       <main className="recommendation-main">
 
+
+        {/* =================================================
+            HEADER
+        ================================================= */}
+
         <header className="recommendation-header">
 
           <div className="recommendation-header-left">
+
+
+            {/* MOBILE MENU */}
 
             <button
               className="recommendation-mobile-menu"
@@ -490,6 +817,8 @@ export default function CourseRecommendations() {
             </button>
 
 
+            {/* BACK */}
+
             <button
               className="recommendation-header-back"
               onClick={() =>
@@ -498,28 +827,36 @@ export default function CourseRecommendations() {
                 )
               }
             >
+
               <ArrowLeft size={18} />
+
               Dashboard
+
             </button>
 
           </div>
 
 
           <div className="recommendation-header-right">
+
             <Sparkles
               size={20}
               color="#08aaa0"
             />
+
           </div>
 
         </header>
 
 
+        {/* =================================================
+            CONTENT
+        ================================================= */}
+
         <section className="recommendation-content">
 
-          {/* =================================================
-              TITLE
-          ================================================= */}
+
+          {/* TITLE */}
 
           <div className="recommendation-title-row">
 
@@ -541,7 +878,7 @@ export default function CourseRecommendations() {
 
 
           {/* =================================================
-              COURSE SELECTOR
+              FORM
           ================================================= */}
 
           <form
@@ -550,6 +887,9 @@ export default function CourseRecommendations() {
               getRecommendations
             }
           >
+
+
+            {/* COURSE SELECT */}
 
             <select
               value={currentCourse}
@@ -565,10 +905,13 @@ export default function CourseRecommendations() {
             >
 
               <option value="">
+
                 {loadingCourses
                   ? "Loading your courses..."
                   : "Select your current course"}
+
               </option>
+
 
               {enrolled.map(
                 (
@@ -581,10 +924,13 @@ export default function CourseRecommendations() {
                       course
                     );
 
+
                   if (!title)
                     return null;
 
+
                   return (
+
                     <option
                       key={
                         course?._id ||
@@ -595,12 +941,16 @@ export default function CourseRecommendations() {
                     >
                       {title}
                     </option>
+
                   );
+
                 }
               )}
 
             </select>
 
+
+            {/* BUTTON */}
 
             <button
               type="submit"
@@ -610,9 +960,11 @@ export default function CourseRecommendations() {
                 !currentCourse
               }
             >
+
               {loadingRecommendations
                 ? "Analyzing..."
                 : "Refresh Recommendations"}
+
             </button>
 
           </form>
@@ -623,9 +975,13 @@ export default function CourseRecommendations() {
           ================================================= */}
 
           {error && (
+
             <div className="recommendation-error">
+
               {error}
+
             </div>
+
           )}
 
 
@@ -635,7 +991,11 @@ export default function CourseRecommendations() {
 
           <div className="recommendation-grid">
 
+
+            {/* LOADING */}
+
             {loadingRecommendations && (
+
               <div className="recommendation-empty">
 
                 <Sparkles size={28} />
@@ -646,12 +1006,16 @@ export default function CourseRecommendations() {
                 </span>
 
               </div>
+
             )}
 
+
+            {/* EMPTY */}
 
             {!loadingRecommendations &&
               recommendations.length === 0 &&
               !error && (
+
                 <div className="recommendation-empty">
 
                   <Sparkles size={28} />
@@ -662,8 +1026,11 @@ export default function CourseRecommendations() {
                   </span>
 
                 </div>
+
               )}
 
+
+            {/* RESULTS */}
 
             {!loadingRecommendations &&
               recommendations.map(
@@ -678,31 +1045,39 @@ export default function CourseRecommendations() {
                         0
                     );
 
+
                   return (
+
                     <article
                       className="recommendation-card"
                       key={`${item.course}-${index}`}
                     >
 
-                      <Sparkles size={24} />
+                      <Sparkles
+                        size={24}
+                      />
+
 
                       <h2>
                         {item.course}
                       </h2>
 
-                      <p>
-                        AI probability:
 
-                        {" "}
+                      <p>
+                        AI probability:{" "}
 
                         <strong>
+
                           {Math.round(
                             probability *
                               100
                           )}
+
                           %
+
                         </strong>
                       </p>
+
 
                       <small>
                         This is a model probability,
@@ -723,7 +1098,9 @@ export default function CourseRecommendations() {
                       </button>
 
                     </article>
+
                   );
+
                 }
               )}
 
@@ -734,5 +1111,7 @@ export default function CourseRecommendations() {
       </main>
 
     </div>
+
   );
+
 }

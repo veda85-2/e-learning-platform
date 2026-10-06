@@ -60,6 +60,7 @@ const handleLogin = async (e) => {
 
    
     localStorage.setItem("token", token);
+    
     localStorage.setItem("user", JSON.stringify(user));
 
     console.log("TOKEN SAVED:", token);
@@ -92,15 +93,14 @@ const handleLogin = async (e) => {
           w-1/2
           items-center
           justify-center
-          overflow-hidden
-         
+          overflow-hidden   
           md:flex
         "
       >
         <img
           src={loginImage}
           alt="Healthcare"
-          className="h-[80%] max-w-200 object-cover"
+          className="h-[65%] max-w-200 object-contain"
         />
       </div>
 
@@ -126,7 +126,7 @@ const handleLogin = async (e) => {
             w-full
             max-w-md
             rounded-[30px]
-            bg-white
+            bg-[#08BFAF]
             px-6
             py-6
             shadow-[0_8px_35px_rgba(0,0,0,0.10)]
@@ -259,8 +259,8 @@ const handleLogin = async (e) => {
                 onClick={() => setError("Password reset is not included in the current backend API contract. Please use your account password or ask the backend team to expose a reset endpoint.")}
                 className="
                   text-xs
-                  text-gray-600
-                  hover:text-[#08BFAF]
+                  text-gray-700
+                  hover:text-[#1c2827]
                   sm:text-sm
                 "
               >
@@ -286,14 +286,15 @@ const handleLogin = async (e) => {
                 mt-1
                 h-12
                 w-full
+                
                 rounded-full
-                bg-[#08BFAF]!
+                bg-black!
                 text-sm
                 font-semibold
                 text-white
                 shadow-[0_4px_8px_rgba(0,0,0,0.15)]
                 transition
-                hover:bg-[#06aa9b]
+                hover:bg-[#484a4a]
                 active:scale-[0.98]
                 sm:h-13
               "
@@ -320,7 +321,7 @@ const handleLogin = async (e) => {
             onClick={() => setError("Google sign-in is not configured by the supplied backend API.")}
             className="
               flex h-12 w-full items-center justify-center gap-3 rounded-full
-              bg-[#eef1f4]! text-xs font-medium text-gray-700 transition hover:bg-gray-200
+              bg-[#eef1f9]! text-xs font-medium text-gray-900 transition hover:bg-gray-200
               sm:h-13 sm:text-sm
             "
           >
@@ -339,7 +340,7 @@ const handleLogin = async (e) => {
             onClick={() => setError("Apple sign-in is not configured by the supplied backend API.")}
             className="
               mt-2 flex h-12 w-full items-center justify-center gap-3 rounded-full
-              bg-[#eef1f4]! text-xs font-medium text-gray-700 transition hover:bg-gray-200
+              bg-[#eef1f9]! text-xs font-medium text-gray-900 transition hover:bg-gray-200
               sm:h-13 sm:text-sm
             "
           >
@@ -357,7 +358,7 @@ const handleLogin = async (e) => {
             onClick={() => setError("Guest access is not available because the dashboard API requires authentication.")}
             className="
               mt-2 flex h-12 w-full items-center justify-center gap-3 rounded-full
-              bg-[#eef1f4]! text-xs font-medium text-gray-700 transition hover:bg-gray-200
+              bg-[#eef1f9]! text-xs font-medium text-gray-900 transition hover:bg-gray-200
               sm:h-13 sm:text-sm
             "
           >
@@ -380,9 +381,10 @@ const handleLogin = async (e) => {
               type="button"
               onClick={() => navigate("/signup")}
               className="
-                font-semibold
-                text-[#08BFAF]
-                hover:text-[#06aa9b]
+                font-bold!
+                text-[#0b0b0b]
+                hover:text-[#141818]
+                
               "
             >
               Sign Up

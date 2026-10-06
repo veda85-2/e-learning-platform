@@ -43,10 +43,10 @@ import {
 
 import {
   getCourseRecommendations,
-  getAnalytics,
+
   getCourseTitle,
   getCompletionRate,
-  getFallbackRecommendations,
+ 
   filterRecommendations,
 } from "./services/CoursePredictionApi";
 
@@ -311,178 +311,112 @@ function Dashboard() {
     setLoading(false);
   }
 
- 
-  async function loadRecommendations() {
-    if (
-      !enrolledCourses.length
-    ) {
-      setRecommendations([]);
-      return;
-    }
+ async function loadRecommendations() {
+  if (!enrolledCourses.length) {
+    setRecommendations([]);
+    return;
+  }
 
-    const currentCourse =
-      getCourseTitle(
-        enrolledCourses[0]
-      ) ||
-      user?.currentCourse ||
-      user?.current_course ||
-      "";
+  const currentCourse =
+    getCourseTitle(
+      enrolledCourses[0]
+    ) ||
+    user?.currentCourse ||
+    user?.current_course ||
+    "";
 
-    if (!currentCourse) {
-      setRecommendations([]);
-      return;
-    }
+  if (!currentCourse) {
+    setRecommendations([]);
+    return;
+  }
 
-    setRecommendationsLoading(
-      true
+  setRecommendationsLoading(true);
+
+  try {
+    console.log(
+      "📚 CURRENT COURSE:",
+      currentCourse
     );
 
-    try {
-      console.log(
-        "📚 CURRENT COURSE:",
-        currentCourse
-      );
+    /*
+    =======================================================
+    CALL REAL ML RECOMMENDATION ENGINE
+    Backend automatically gets the user's metrics
+    from MongoDB.
+    =======================================================
+    */
 
-      const mlAnalytics =
-        getAnalytics(
-          analytics
-        );
+    const mlResults =
+      await getCourseRecommendations({
+        currentCourse,
+      });
 
-      console.log(
-        "📊 ML ANALYTICS:",
-        mlAnalytics
-      );
+    console.log(
+      "🤖 ML RESULTS:",
+      mlResults
+    );
 
-     
+    /*
+    =======================================================
+    FILTER AGAINST REAL LMS COURSES
+    =======================================================
+    */
 
-      const mlResults =
-        await getCourseRecommendations({
-          currentCourse,
-          analytics:
-            mlAnalytics,
-        });
+    const filtered =
+      filterRecommendations({
+        recommendations:
+          mlResults,
 
-      console.log(
-        "🤖 ML RESULTS:",
-        mlResults
-      );
+        availableCourses:
+          availableCourses,
 
-    
-
-      let filtered =
-        filterRecommendations({
-          recommendations:
-            mlResults,
-
-          availableCourses:
-            availableCourses,
-
-          enrolledCourses:
-            enrolledCourses,
-
-          currentCourse:
-            currentCourse,
-        });
-
-      console.log(
-        "🤖 FILTERED ML RESULTS:",
-        filtered
-      );
-
-    
-
-      const onlyPython =
-        filtered.length > 0 &&
-        filtered.every(
-          (item) =>
-            item.course
-              .toLowerCase()
-              .includes("python")
-        );
-
-      if (
-        filtered.length === 0 ||
-        onlyPython
-      ) {
-        console.warn(
-          "⚠️ ML model returned an unhelpful recommendation. Using progression fallback."
-        );
-
-        filtered =
-          getFallbackRecommendations({
-            currentCourse,
-            enrolledCourses,
-          });
-
-        /*
-        Only display fallback courses
-        that really exist in LMS.
-        */
-
-        filtered =
-          filterRecommendations({
-            recommendations:
-              filtered,
-
-            availableCourses:
-              availableCourses,
-
-            enrolledCourses:
-              enrolledCourses,
-
-            currentCourse:
-              currentCourse,
-          });
-      }
-
-      console.log(
-        "✅ FINAL RECOMMENDATIONS:",
-        filtered
-      );
-
-      setRecommendations(
-        filtered.slice(0, 5)
-      );
-    } catch (err) {
-      console.error(
-        "❌ RECOMMENDATION API ERROR:",
-        err
-      );
-
-    
-      const fallback =
-        getFallbackRecommendations({
-          currentCourse,
+        enrolledCourses:
           enrolledCourses,
-        });
 
-      const validFallback =
-        filterRecommendations({
-          recommendations:
-            fallback,
+        currentCourse:
+          currentCourse,
+      });
 
-          availableCourses:
-            availableCourses,
+    console.log(
+      "🤖 FILTERED ML RESULTS:",
+      filtered
+    );
 
-          enrolledCourses:
-            enrolledCourses,
+    /*
+    =======================================================
+    SHOW REAL ML RECOMMENDATIONS
+    =======================================================
+    */
 
-          currentCourse:
-            currentCourse,
-        });
+    console.log(
+      "✅ FINAL RECOMMENDATIONS:",
+      filtered
+    );
 
-      setRecommendations(
-        validFallback.slice(
-          0,
-          5
-        )
-      );
-    } finally {
-      setRecommendationsLoading(
-        false
-      );
-    }
+    setRecommendations(
+      filtered.slice(0, 5)
+    );
+
+  } catch (err) {
+    console.error(
+      "❌ RECOMMENDATION API ERROR:",
+      err
+    );
+
+    /*
+    Do NOT show fallback recommendations.
+    This ensures the Dashboard never presents
+    fake/deterministic values as ML predictions.
+    */
+
+    setRecommendations([]);
+
+  } finally {
+    setRecommendationsLoading(
+      false
+    );
   }
+}
 
  
   useEffect(() => {

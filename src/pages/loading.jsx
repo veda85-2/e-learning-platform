@@ -1,7 +1,7 @@
-
 import background from "../assets/green.png";
 import winner from "../assets/winner.jpeg";
 import { useNavigate } from "react-router-dom";
+
 
 function Loading() {
   const navigate = useNavigate();
@@ -59,10 +59,13 @@ function Loading() {
             ES
           </div>
 
-          <span className="text-lg text-[#111111] sm:text-xl">
-            EDU<span className="font-medium">sphere</span>
+          <span className="text-lg text-[#fbf9f9] sm:text-xl">
+            EDU<span className="font-medium text-black">sphere</span>
           </span>
+
         </div>
+
+        
 
        
       </nav>
@@ -284,6 +287,7 @@ function FeatureCard({ icon, title, subtitle }) {
         flex
         h-24
         w-28
+        mr-9
         flex-col
         items-center
         justify-center
@@ -301,18 +305,18 @@ function FeatureCard({ icon, title, subtitle }) {
         className="
           mb-1
           flex
-          h-10
-          w-10
+          h-15
+          w-15
           items-center
           justify-center
           rounded-full
-          bg-black
+          bg-white
           sm:mb-2
           sm:h-12
           sm:w-12
         "
       >
-        <span className="text-xl text-[#00D9C0] sm:text-2xl">
+        <span className="text-xl text-[#172f2c] sm:text-2xl">
           {icon}
         </span>
       </div>

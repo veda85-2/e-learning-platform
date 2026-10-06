@@ -105,7 +105,7 @@ function Signup() {
         <img
           src={signupImage}
           alt="Signup illustration"
-          className="h-[70%] max-w-150 object-contain"
+          className="h-[40%] max-w-150 object-contain"
         />
       </div>
 
@@ -116,10 +116,10 @@ function Signup() {
           w-full
           items-center
           justify-center
-          overflow-y-auto
+          overflow-auto
           bg-white
           px-4
-          py-5
+         py-8
           sm:px-8
           md:w-1/2
         "
@@ -130,11 +130,12 @@ function Signup() {
           className="
             my-auto
             w-full
+            h-3/4
             max-w-md
             rounded-[30px]
-            bg-white
+            bg-[#08BFAF]
             px-6
-            py-7
+            py-12!
             shadow-[0_8px_35px_rgba(0,0,0,0.10)]
             sm:px-8
             sm:py-7
@@ -147,7 +148,7 @@ function Signup() {
             Sign Up
           </h1>
 
-          <p className="mt-1 text-center text-xs text-gray-500 sm:text-sm">
+          <p className="mt-1 text-center text-xs text-gray-900 sm:text-sm">
             Create your account and start learning.
           </p>
 
@@ -302,7 +303,7 @@ function Signup() {
 
               <label
                 htmlFor="terms"
-                className="text-xs text-gray-500 sm:text-sm"
+                className="text-xs text-gray-700 sm:text-sm"
               >
                 I agree to the{" "}
                 <span className="font-semibold text-black">
@@ -326,8 +327,8 @@ function Signup() {
               type="submit"
               disabled={loading}
               className="
-                mt-1 h-12 w-full rounded-full bg-[#08BFAF]!
-                text-sm font-semibold text-black
+                mt-1 h-12 w-full rounded-full bg-black!
+                text-sm font-semibold text-white
                 shadow-[0_4px_8px_rgba(0,0,0,0.15)]
                 transition hover:bg-[#06aa9b] active:scale-[0.98]
                 disabled:cursor-not-allowed disabled:opacity-60
@@ -340,13 +341,13 @@ function Signup() {
           </form>
 
           {/* LOGIN */}
-          <p className="mt-4 text-center text-xs text-gray-500 sm:mt-5 sm:text-sm">
+          <p className="mt-4 text-center text-xs text-gray-700 sm:mt-5 sm:text-sm">
             Already have an account?{" "}
 
             <button
               type="button"
               onClick={() => navigate("/login")}
-              className="font-semibold text-[#08BFAF] hover:text-[#06aa9b]"
+              className="font-bold! mt-2.5 text-[#131414] hover:text-[#131515]"
             >
               Login
             </button>

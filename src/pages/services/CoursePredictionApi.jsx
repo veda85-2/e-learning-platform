@@ -1,19 +1,5 @@
 import API from "../api/api";
-
-/*
-=========================================================
-ML API
-=========================================================
-*/
-
-const ML_API_URL = "/ml-api/recommend";
-
-/*
-=========================================================
-COURSE TITLE
-=========================================================
-*/
-
+import { getMLRecommendations } from "../api/ml";
 export function getCourseTitle(course) {
   if (!course) return "";
 
@@ -29,12 +15,6 @@ export function getCourseTitle(course) {
   ).trim();
 }
 
-/*
-=========================================================
-NORMALIZE COURSE NAME
-=========================================================
-*/
-
 export function normalizeCourseName(name) {
   if (!name) return "";
 
@@ -46,24 +26,8 @@ export function normalizeCourseName(name) {
     .replace(/\s+/g, " ");
 }
 
-/*
-=========================================================
-CANONICAL COURSE NAME
-
-This allows:
-
-React
-React JS
-React.js
-React Development
-
-to be treated as the same course.
-=========================================================
-*/
-
 export function canonicalCourseName(name) {
-  const normalized =
-    normalizeCourseName(name);
+  const normalized = normalizeCourseName(name);
 
   const aliases = {
     "html css": "html & css",
@@ -76,12 +40,12 @@ export function canonicalCourseName(name) {
 
     react: "react js",
     "react js": "react js",
-    "reactjs": "react js",
+    reactjs: "react js",
     "react development": "react js",
     "react.js": "react js",
 
     "node js": "node.js & express",
-    "nodejs": "node.js & express",
+    nodejs: "node.js & express",
     "node.js": "node.js & express",
     "node & express": "node.js & express",
     "node.js & express": "node.js & express",
@@ -91,24 +55,14 @@ export function canonicalCourseName(name) {
     "sql & database": "sql & database",
 
     python: "python programming",
-    "python programming":
-      "python programming",
+    "python programming": "python programming",
 
     ml: "ml",
     "machine learning": "ml",
   };
 
-  return (
-    aliases[normalized] ||
-    normalized
-  );
+  return aliases[normalized] || normalized;
 }
-
-/*
-=========================================================
-ANALYTICS
-=========================================================
-*/
 
 export function getAnalytics(data = {}) {
   const source =
@@ -159,16 +113,13 @@ export function getAnalytics(data = {}) {
     learning_resources: Number(
       source?.learning_resources ??
         source?.learningResources ??
+        source?.resources ??
         0
     ),
   };
 }
 
-/*
-=========================================================
-COMPLETION RATE
-=========================================================
-*/
+
 
 export function getCompletionRate(data = {}) {
   const values = [
@@ -199,21 +150,13 @@ export function getCompletionRate(data = {}) {
       Number.isFinite(number) &&
       number >= 0
     ) {
-      return Math.min(
-        100,
-        number
-      );
+      return Math.min(100, number);
     }
   }
 
   return 0;
 }
 
-/*
-=========================================================
-FETCH DASHBOARD
-=========================================================
-*/
 
 export async function fetchDashboardAnalytics() {
   try {
@@ -224,6 +167,11 @@ export async function fetchDashboardAnalytics() {
       response?.data?.data ||
       response?.data ||
       {};
+
+    console.log(
+      "📊 DASHBOARD ANALYTICS:",
+      data
+    );
 
     return data;
   } catch (error) {
@@ -237,24 +185,15 @@ export async function fetchDashboardAnalytics() {
   }
 }
 
-/*
-=========================================================
-BUILD ML PAYLOAD
-=========================================================
-*/
 
 export function buildMLPayload({
   currentCourse,
   analytics = {},
 }) {
-  const safe =
-    getAnalytics(
-      analytics
-    );
+  const safe = getAnalytics(analytics);
 
   return {
-    current_course:
-      currentCourse,
+    current_course: currentCourse,
 
     mean_score:
       safe.mean_score,
@@ -276,154 +215,6 @@ export function buildMLPayload({
   };
 }
 
-/*
-=========================================================
-ML REQUEST
-=========================================================
-*/
-
-export async function getCourseRecommendations({
-  currentCourse,
-  analytics = {},
-}) {
-  if (!currentCourse) {
-    throw new Error(
-      "Current course is required."
-    );
-  }
-
-  const payload =
-    buildMLPayload({
-      currentCourse,
-      analytics,
-    });
-
-  console.log(
-    "🤖 ML REQUEST:",
-    payload
-  );
-
-  const response =
-    await fetch(
-      ML_API_URL,
-      {
-        method: "POST",
-
-        headers: {
-          "Content-Type":
-            "application/json",
-
-          Accept:
-            "application/json",
-        },
-
-        body: JSON.stringify(
-          payload
-        ),
-      }
-    );
-
-  const raw =
-    await response.text();
-
-  console.log(
-    "🤖 ML STATUS:",
-    response.status
-  );
-
-  console.log(
-    "🤖 ML RAW RESPONSE:",
-    raw
-  );
-
-  if (!response.ok) {
-    throw new Error(
-      `ML API Error ${response.status}: ${raw}`
-    );
-  }
-
-  let data = {};
-
-  try {
-    data = raw
-      ? JSON.parse(raw)
-      : {};
-  } catch {
-    throw new Error(
-      "ML API returned invalid JSON."
-    );
-  }
-
-  let results = [];
-
-  if (Array.isArray(data)) {
-    results = data;
-  } else if (
-    Array.isArray(
-      data?.recommendations
-    )
-  ) {
-    results =
-      data.recommendations;
-  } else if (
-    Array.isArray(data?.data)
-  ) {
-    results = data.data;
-  } else if (
-    Array.isArray(
-      data?.predictions
-    )
-  ) {
-    results =
-      data.predictions;
-  }
-
-  return results
-    .map((item) => {
-      let probability = Number(
-        item?.probability ??
-          item?.score ??
-          item?.confidence ??
-          0
-      );
-
-      if (probability > 1) {
-        probability /=
-          100;
-      }
-
-      return {
-        course:
-          item?.course ||
-          item?.course_name ||
-          item?.courseName ||
-          item?.name ||
-          "",
-
-        probability:
-          Math.max(
-            0,
-            Math.min(
-              1,
-              probability
-            )
-          ),
-      };
-    })
-    .filter(
-      (item) =>
-        item.course
-    );
-}
-
-/*
-=========================================================
-FALLBACK COURSE PROGRESSION
-
-Only used when ML gives no useful recommendation.
-=========================================================
-*/
-
 const COURSE_SEQUENCE = [
   "HTML & CSS",
   "JSS",
@@ -434,6 +225,112 @@ const COURSE_SEQUENCE = [
   "ML",
 ];
 
+
+
+
+export const getCourseRecommendations = async ({
+  currentCourse,
+}) => {
+  if (!currentCourse) {
+    throw new Error("Current course is required");
+  }
+
+  const data = await getMLRecommendations(currentCourse);
+
+  console.log("🤖 RAW ML RESPONSE:", data);
+
+ let results = [];
+
+// Direct array
+if (Array.isArray(data)) {
+  results = data;
+}
+
+// { recommendations: [...] }
+else if (Array.isArray(data?.recommendations)) {
+  results = data.recommendations;
+}
+
+// { predictions: [...] }
+else if (Array.isArray(data?.predictions)) {
+  results = data.predictions;
+}
+
+// { data: [...] }
+else if (Array.isArray(data?.data)) {
+  results = data.data;
+}
+
+// { data: { recommendations: [...] } }
+else if (Array.isArray(data?.data?.recommendations)) {
+  results = data.data.recommendations;
+}
+
+// { data: { predictions: [...] } }
+else if (Array.isArray(data?.data?.predictions)) {
+  results = data.data.predictions;
+}
+
+// { data: { data: [...] } }
+else if (Array.isArray(data?.data?.data)) {
+  results = data.data.data;
+}
+
+console.log(
+  "🤖 PARSED ML RESULTS:",
+  results
+);
+  console.log(
+    "🤖 PARSED ML RESULTS:",
+    results
+  );
+
+  // Normalize ML results
+  const normalizedResults = results
+    .map((item) => {
+      let probability = Number(
+        item?.probability ??
+        item?.score ??
+        item?.confidence ??
+        0
+      );
+
+      // If backend returns 85 instead of 0.85
+      if (probability > 1) {
+        probability /= 100;
+      }
+
+      return {
+        course:
+          item?.course ||
+          item?.course_name ||
+          item?.courseName ||
+          item?.course_title ||
+          item?.name ||
+          "",
+
+        probability: Math.max(
+          0,
+          Math.min(1, probability)
+        ),
+
+        source:
+          item?.source || "ml",
+      };
+    })
+    .filter(
+      (item) => item.course
+    );
+
+  console.log(
+    "🤖 NORMALIZED ML RESULTS:",
+    normalizedResults
+  );
+
+  return normalizedResults;
+};
+
+
 export function getFallbackRecommendations({
   currentCourse,
   enrolledCourses = [],
@@ -443,12 +340,13 @@ export function getFallbackRecommendations({
       currentCourse
     );
 
-  const enrolled = new Set(
-    enrolledCourses
-      .map(getCourseTitle)
-      .filter(Boolean)
-      .map(canonicalCourseName)
-  );
+  const enrolled =
+    new Set(
+      enrolledCourses
+        .map(getCourseTitle)
+        .filter(Boolean)
+        .map(canonicalCourseName)
+    );
 
   const currentIndex =
     COURSE_SEQUENCE.findIndex(
@@ -486,9 +384,11 @@ export function getFallbackRecommendations({
     .map(
       (course, index) => ({
         course,
+
         probability:
           0.90 -
           index * 0.08,
+
         source: "fallback",
       })
     );
@@ -496,9 +396,7 @@ export function getFallbackRecommendations({
 
 /*
 =========================================================
-FILTER ML RECOMMENDATIONS
-
-Only courses actually present in LMS are allowed.
+FILTER RECOMMENDATIONS
 =========================================================
 */
 
@@ -514,9 +412,7 @@ export function filterRecommendations({
   availableCourses.forEach(
     (course) => {
       const title =
-        getCourseTitle(
-          course
-        );
+        getCourseTitle(course);
 
       if (!title) return;
 
@@ -544,7 +440,8 @@ export function filterRecommendations({
       currentCourse
     );
 
-  const seen = new Set();
+  const seen =
+    new Set();
 
   return recommendations
     .map((item) => {
@@ -558,9 +455,19 @@ export function filterRecommendations({
           canonical
         );
 
+      /*
+      Course doesn't exist
+      in LMS.
+      */
+
       if (!actualTitle) {
         return null;
       }
+
+      /*
+      Don't recommend
+      current course.
+      */
 
       if (
         canonical ===
@@ -568,6 +475,11 @@ export function filterRecommendations({
       ) {
         return null;
       }
+
+      /*
+      Don't recommend
+      already enrolled.
+      */
 
       if (
         enrolledSet.has(
@@ -577,7 +489,13 @@ export function filterRecommendations({
         return null;
       }
 
-      if (seen.has(canonical)) {
+      /*
+      Remove duplicates.
+      */
+
+      if (
+        seen.has(canonical)
+      ) {
         return null;
       }
 
@@ -597,10 +515,97 @@ export function filterRecommendations({
           "ml",
       };
     })
+
     .filter(Boolean)
+
     .sort(
       (a, b) =>
         b.probability -
         a.probability
     );
+}
+
+/*
+=========================================================
+TEST BACKEND ML CONNECTION
+=========================================================
+*/
+
+export async function testMLConnection() {
+  try {
+    const token =
+      localStorage.getItem("token");
+
+    if (!token) {
+      return {
+        status: 0,
+        ok: false,
+        response:
+          "No login token found.",
+      };
+    }
+
+    const response =
+      await fetch(
+        "https://lms-backend-g4.onrender.com/recommend",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            Accept:
+              "application/json",
+
+            Authorization:
+              `Bearer ${token}`,
+          },
+
+          body: JSON.stringify({
+            current_course:
+              "HTML & CSS",
+          }),
+        }
+      );
+
+    const text =
+      await response.text();
+
+    console.log(
+      "🧪 BACKEND ML TEST STATUS:",
+      response.status
+    );
+
+    console.log(
+      "🧪 BACKEND ML TEST RESPONSE:",
+      text
+    );
+
+    return {
+      status:
+        response.status,
+
+      ok:
+        response.ok,
+
+      response:
+        text,
+    };
+
+  } catch (error) {
+    console.error(
+      "🧪 BACKEND ML TEST FAILED:",
+      error
+    );
+
+    return {
+      status: 0,
+
+      ok: false,
+
+      response:
+        error.message,
+    };
+  }
 }

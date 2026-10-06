@@ -10,6 +10,7 @@ import ProtectedRoute from "./pages/ProtectedRoute";
 import Quiz from "./quizzes";
 import Profile from "./pages/profile";
 
+
 import CoursePlayer from "./pages/courseplayer";
 export default function App() {
   return (
@@ -42,6 +43,7 @@ export default function App() {
             path="/profile"
             element={<Profile />}
           />
+        
        <Route
   path="/course/:courseId"
   element={<CoursePlayer />}
