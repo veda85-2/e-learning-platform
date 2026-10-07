@@ -21,7 +21,6 @@ import {
   Grid2X2,
   LogOut,
   Menu,
-  MessageCircle,
   Search,
   Star,
   UserCircle,
@@ -43,21 +42,21 @@ import {
 
 import {
   getCourseRecommendations,
-
   getCourseTitle,
-  getCompletionRate,
- 
   filterRecommendations,
 } from "./services/CoursePredictionApi";
 
 import "./dashboard.css";
 
 
+// ======================================================
+// DEFAULT ANALYTICS
+// ======================================================
+
 const defaultAnalytics = {
   enrolledCoursesCount: 0,
   averageQuizScore: 0,
   overallCompletionRate: 0,
-
   mean_score: 0,
   assessment_count: 0,
   course_score: 0,
@@ -67,15 +66,15 @@ const defaultAnalytics = {
 };
 
 
+// ======================================================
+// DASHBOARD
+// ======================================================
 
 function Dashboard() {
-  const navigate =
-    useNavigate();
+  const navigate = useNavigate();
 
   const [analytics, setAnalytics] =
-    useState(
-      defaultAnalytics
-    );
+    useState(defaultAnalytics);
 
   const [availableCourses, setAvailableCourses] =
     useState([]);
@@ -98,6 +97,156 @@ function Dashboard() {
   const [sidebarOpen, setSidebarOpen] =
     useState(false);
 
+  // Forces dashboard to recalculate local progress
+  const [localProgressVersion, setLocalProgressVersion] =
+    useState(0);
+
+
+  // ======================================================
+  // LISTEN FOR COURSE / QUIZ PROGRESS CHANGES
+  // ======================================================
+
+  useEffect(() => {
+    const updateProgress = () => {
+      setLocalProgressVersion(
+        (value) => value + 1
+      );
+    };
+
+    window.addEventListener(
+      "edusphere_progress_updated",
+      updateProgress
+    );
+
+    window.addEventListener(
+      "storage",
+      updateProgress
+    );
+
+    return () => {
+      window.removeEventListener(
+        "edusphere_progress_updated",
+        updateProgress
+      );
+
+      window.removeEventListener(
+        "storage",
+        updateProgress
+      );
+    };
+  }, []);
+
+
+  // ======================================================
+  // GET HARD-CODED VIDEO / LESSON PROGRESS
+  // ======================================================
+const getLocalProgress = () => {
+  let completedLessons = 0;
+  let totalLessons = 0;
+
+  // Get current logged-in user
+  const currentUser =
+    JSON.parse(localStorage.getItem("user")) || {};
+
+  const userId =
+    currentUser.id ||
+    currentUser.email ||
+    currentUser._id ||
+    "guest";
+
+  courseContent.forEach((course) => {
+    const modules = course?.modules || [];
+
+    totalLessons += modules.length;
+
+    // IMPORTANT:
+    // Progress is now stored separately for every user
+    const progressKey =
+      `edusphere_progress_${userId}_${course.id}`;
+
+    let completed = [];
+
+    try {
+      completed = JSON.parse(
+        localStorage.getItem(progressKey) || "[]"
+      );
+    } catch {
+      completed = [];
+    }
+
+    // Only count valid and unique module IDs
+    const validCompleted = completed.filter(
+      (moduleId, index) =>
+        completed.indexOf(moduleId) === index &&
+        modules.some(
+          (module) =>
+            String(module.id) === String(moduleId)
+        )
+    );
+
+    completedLessons += validCompleted.length;
+  });
+
+  return {
+    completedLessons,
+    totalLessons,
+  };
+};
+  // ======================================================
+  // GET LOCAL QUIZ PROGRESS
+  // ======================================================
+
+  const getLocalQuizProgress = () => {
+    let quizProgress = {};
+
+    try {
+      quizProgress = JSON.parse(
+        localStorage.getItem(
+          "edusphere_quiz_progress"
+        ) || "{}"
+      );
+    } catch {
+      quizProgress = {};
+    }
+
+    const completedQuizzes =
+      Object.values(
+        quizProgress
+      ).filter(
+        (quiz) =>
+          quiz?.completed === true
+      );
+
+    const scores =
+      completedQuizzes
+        .map((quiz) =>
+          Number(quiz?.score)
+        )
+        .filter((score) =>
+          Number.isFinite(score)
+        );
+
+    const averageScore =
+      scores.length > 0
+        ? scores.reduce(
+            (sum, score) =>
+              sum + score,
+            0
+          ) / scores.length
+        : 0;
+
+    return {
+      completedQuizzes:
+        completedQuizzes.length,
+
+      averageScore,
+    };
+  };
+
+
+  // ======================================================
+  // USER
+  // ======================================================
 
   const user = useMemo(() => {
     try {
@@ -111,21 +260,18 @@ function Dashboard() {
     }
   }, []);
 
-  /*
-  =======================================================
-  LOAD DASHBOARD
-  =======================================================
-  */
+
+  // ======================================================
+  // LOAD DASHBOARD
+  // ======================================================
 
   async function loadDashboard() {
     setLoading(true);
     setError("");
 
-    /*
-    -------------------------------------------------------
-    DASHBOARD
-    -------------------------------------------------------
-    */
+    // -----------------------------------------------
+    // DASHBOARD ANALYTICS
+    // -----------------------------------------------
 
     try {
       const response =
@@ -227,7 +373,10 @@ function Dashboard() {
       );
     }
 
-   
+
+    // -----------------------------------------------
+    // ENROLLED COURSES
+    // -----------------------------------------------
 
     try {
       const response =
@@ -268,7 +417,11 @@ function Dashboard() {
       setEnrolledCourses([]);
     }
 
-   
+
+    // -----------------------------------------------
+    // AVAILABLE COURSES
+    // -----------------------------------------------
+
     try {
       const response =
         await API.get(
@@ -311,119 +464,102 @@ function Dashboard() {
     setLoading(false);
   }
 
- async function loadRecommendations() {
-  if (!enrolledCourses.length) {
-    setRecommendations([]);
-    return;
-  }
 
-  const currentCourse =
-    getCourseTitle(
-      enrolledCourses[0]
-    ) ||
-    user?.currentCourse ||
-    user?.current_course ||
-    "";
+  // ======================================================
+  // LOAD ML RECOMMENDATIONS
+  // ======================================================
 
-  if (!currentCourse) {
-    setRecommendations([]);
-    return;
-  }
+  async function loadRecommendations() {
+    if (
+      !enrolledCourses.length
+    ) {
+      setRecommendations([]);
+      return;
+    }
 
-  setRecommendationsLoading(true);
+    const currentCourse =
+      getCourseTitle(
+        enrolledCourses[0]
+      ) ||
+      user?.currentCourse ||
+      user?.current_course ||
+      "";
 
-  try {
-    console.log(
-      "📚 CURRENT COURSE:",
-      currentCourse
-    );
+    if (!currentCourse) {
+      setRecommendations([]);
+      return;
+    }
 
-    /*
-    =======================================================
-    CALL REAL ML RECOMMENDATION ENGINE
-    Backend automatically gets the user's metrics
-    from MongoDB.
-    =======================================================
-    */
-
-    const mlResults =
-      await getCourseRecommendations({
-        currentCourse,
-      });
-
-    console.log(
-      "🤖 ML RESULTS:",
-      mlResults
-    );
-
-    /*
-    =======================================================
-    FILTER AGAINST REAL LMS COURSES
-    =======================================================
-    */
-
-    const filtered =
-      filterRecommendations({
-        recommendations:
-          mlResults,
-
-        availableCourses:
-          availableCourses,
-
-        enrolledCourses:
-          enrolledCourses,
-
-        currentCourse:
-          currentCourse,
-      });
-
-    console.log(
-      "🤖 FILTERED ML RESULTS:",
-      filtered
-    );
-
-    /*
-    =======================================================
-    SHOW REAL ML RECOMMENDATIONS
-    =======================================================
-    */
-
-    console.log(
-      "✅ FINAL RECOMMENDATIONS:",
-      filtered
-    );
-
-    setRecommendations(
-      filtered.slice(0, 5)
-    );
-
-  } catch (err) {
-    console.error(
-      "❌ RECOMMENDATION API ERROR:",
-      err
-    );
-
-    /*
-    Do NOT show fallback recommendations.
-    This ensures the Dashboard never presents
-    fake/deterministic values as ML predictions.
-    */
-
-    setRecommendations([]);
-
-  } finally {
     setRecommendationsLoading(
-      false
+      true
     );
-  }
-}
 
- 
+    try {
+      console.log(
+        "📚 CURRENT COURSE:",
+        currentCourse
+      );
+
+      const mlResults =
+        await getCourseRecommendations({
+          currentCourse,
+        });
+
+      console.log(
+        "🤖 ML RESULTS:",
+        mlResults
+      );
+
+      const filtered =
+        filterRecommendations({
+          recommendations:
+            mlResults,
+
+          availableCourses:
+            availableCourses,
+
+          enrolledCourses:
+            enrolledCourses,
+
+          currentCourse:
+            currentCourse,
+        });
+
+      console.log(
+        "🤖 FILTERED ML RESULTS:",
+        filtered
+      );
+
+      setRecommendations(
+        filtered.slice(0, 5)
+      );
+    } catch (err) {
+      console.error(
+        "❌ RECOMMENDATION API ERROR:",
+        err
+      );
+
+      setRecommendations([]);
+    } finally {
+      setRecommendationsLoading(
+        false
+      );
+    }
+  }
+
+
+  // ======================================================
+  // INITIAL DASHBOARD LOAD
+  // ======================================================
+
   useEffect(() => {
     loadDashboard();
   }, []);
 
 
+  // ======================================================
+  // LOAD RECOMMENDATIONS
+  // ======================================================
 
   useEffect(() => {
     if (
@@ -440,6 +576,10 @@ function Dashboard() {
     analytics,
   ]);
 
+
+  // ======================================================
+  // LOGOUT
+  // ======================================================
 
   function logout() {
     localStorage.removeItem(
@@ -458,85 +598,87 @@ function Dashboard() {
     );
   }
 
- 
-  const dashboardCompletion =
-    getCompletionRate(
-      analytics
-    );
 
-  const courseProgress =
-    enrolledCourses
-      .map((course) => {
-        const value =
-          Number(
-            course?.completionRate ??
-              course?.completion_rate ??
-              course?.progressPercentage ??
-              course?.progress_percentage ??
-              course?.progress ??
-              course?.completion ??
-              course?.percentage ??
-              course?.course?.completionRate ??
-              course?.course?.progress
-          );
+  // ======================================================
+  // LOCAL PROGRESS
+  // ======================================================
 
-        return Number.isFinite(
-          value
-        )
-          ? value
-          : null;
-      })
-      .filter(
-        (value) =>
-          value !== null
-      );
+  const localProgress =
+    getLocalProgress();
 
-  const calculatedCompletion =
-    courseProgress.length > 0
-      ? courseProgress.reduce(
-          (sum, value) =>
-            sum + value,
-          0
-        ) /
-        courseProgress.length
+  const localQuizProgress =
+    getLocalQuizProgress();
+
+
+  // ======================================================
+  // COMPLETION RATE
+  //
+  // IMPORTANT:
+  // This is based on hardcoded lesson/video progress.
+  // ======================================================
+console.log("LOCAL PROGRESS:", localProgress);
+console.log("Completed:", localProgress.completedLessons);
+console.log("Total:", localProgress.totalLessons);
+  const completionRate =
+    localProgress.totalLessons > 0
+      ? (
+          localProgress.completedLessons /
+          localProgress.totalLessons
+        ) * 100
       : 0;
 
-  const completionRate =
-    dashboardCompletion > 0
-      ? dashboardCompletion
-      : calculatedCompletion;
+console.log("COMPLETION RATE:", completionRate);
+  // ======================================================
+  // AVERAGE QUIZ SCORE
+  // ======================================================
 
+  const backendQuizScore =
+    Number(
+      analytics.averageQuizScore
+    ) || 0;
 
   const averageQuizScore =
-    Math.max(
-      0,
-      Math.min(
-        100,
-        Number(
-          analytics.averageQuizScore
-        ) || 0
-      )
-    );
+    localQuizProgress.completedQuizzes >
+    0
+      ? Math.max(
+          0,
+          Math.min(
+            100,
+            localQuizProgress.averageScore
+          )
+        )
+      : Math.max(
+          0,
+          Math.min(
+            100,
+            backendQuizScore
+          )
+        );
+
+
+  // ======================================================
+  // DASHBOARD STATS
+  // ======================================================
 
   const stats = {
     coursesInProgress:
       enrolledCourses.length,
 
     coursesCompleted:
-      `${completionRate.toFixed(
-        0
-      )}%`,
+      `${completionRate.toFixed(0)}%`,
 
     totalReadTime:
-      `${averageQuizScore.toFixed(
-        0
-      )}%`,
+      `${averageQuizScore.toFixed(0)}%`,
 
     totalWatchTime:
       availableCourses.length,
   };
 
- 
+
+  // ======================================================
+  // PIE CHART DATA
+  // ======================================================
+
   const pieData = [
     {
       name: "Completed",
@@ -560,35 +702,32 @@ function Dashboard() {
         <div
           className="mobile-overlay"
           onClick={() =>
-            setSidebarOpen(
-              false
-            )
+            setSidebarOpen(false)
           }
         />
       )}
 
+
       <Sidebar
         open={sidebarOpen}
         closeSidebar={() =>
-          setSidebarOpen(
-            false
-          )
+          setSidebarOpen(false)
         }
         navigate={navigate}
         logout={logout}
       />
+
 
       <main className="main">
 
         <Header
           notificationCount={0}
           onMenu={() =>
-            setSidebarOpen(
-              true
-            )
+            setSidebarOpen(true)
           }
           user={user}
         />
+
 
         {error && (
           <div className="api-warning">
@@ -604,9 +743,11 @@ function Dashboard() {
           </div>
         )}
 
+
         {loading && (
           <div className="loading-bar" />
         )}
+
 
         <section className="content">
 
@@ -622,6 +763,7 @@ function Dashboard() {
               </h1>
             </div>
 
+
             <button
               className="logout-inline"
               onClick={logout}
@@ -632,9 +774,11 @@ function Dashboard() {
 
           </div>
 
+
           <Stats
             stats={stats}
           />
+
 
           <div className="dashboard-grid">
 
@@ -649,6 +793,7 @@ function Dashboard() {
                 }
               />
 
+
               <div className="bottom-grid">
 
                 <TimeSpending
@@ -657,6 +802,7 @@ function Dashboard() {
                     completionRate
                   }
                 />
+
 
                 <Others
                   recommendations={
@@ -674,6 +820,7 @@ function Dashboard() {
 
             </div>
 
+
             <LiveClasses />
 
           </div>
@@ -687,6 +834,9 @@ function Dashboard() {
 }
 
 
+// ======================================================
+// SIDEBAR
+// ======================================================
 
 function Sidebar({
   open,
@@ -727,6 +877,7 @@ function Sidebar({
     },
   ];
 
+
   return (
     <aside
       className={`sidebar ${
@@ -745,6 +896,7 @@ function Sidebar({
         <X size={22} />
       </button>
 
+
       <div className="brand">
 
         <div className="brand-logo">
@@ -759,6 +911,7 @@ function Sidebar({
         </span>
 
       </div>
+
 
       <nav className="navigation">
 
@@ -795,6 +948,7 @@ function Sidebar({
 
       </nav>
 
+
       <button
         className="upgrade-button"
         onClick={() =>
@@ -805,6 +959,7 @@ function Sidebar({
       >
         💎 Upgrade Premium
       </button>
+
 
       <button
         className="sidebar-logout"
@@ -818,6 +973,10 @@ function Sidebar({
   );
 }
 
+
+// ======================================================
+// HEADER
+// ======================================================
 
 function Header({
   notificationCount,
@@ -833,6 +992,7 @@ function Header({
         <Menu size={23} />
       </button>
 
+
       <div className="search-box">
 
         <Search size={23} />
@@ -842,6 +1002,7 @@ function Header({
         />
 
       </div>
+
 
       <div className="header-actions">
 
@@ -866,6 +1027,10 @@ function Header({
   );
 }
 
+
+// ======================================================
+// STATS
+// ======================================================
 
 function Stats({ stats }) {
   const items = [
@@ -902,6 +1067,7 @@ function Stats({ stats }) {
     },
   ];
 
+
   return (
     <div className="stats-grid">
 
@@ -919,6 +1085,7 @@ function Stats({ stats }) {
             >
 
               <div>
+
                 <p>
                   {item.title}
                 </p>
@@ -926,7 +1093,9 @@ function Stats({ stats }) {
                 <strong>
                   {item.value}
                 </strong>
+
               </div>
+
 
               <div
                 className={`stat-icon ${item.className}`}
@@ -944,17 +1113,22 @@ function Stats({ stats }) {
 }
 
 
+// ======================================================
+// COURSES
+// ======================================================
 
 function Courses({
   courses,
   navigate,
 }) {
+
   function openCoursePlayer(
     course
   ) {
-    const title = getCourseTitle(
-      course
-    );
+    const title =
+      getCourseTitle(
+        course
+      );
 
     const normalized =
       title.toLowerCase();
@@ -963,9 +1137,11 @@ function Courses({
       "html & css":
         "html-css",
 
-      jss: "jss",
+      jss:
+        "jss",
 
-      javascript: "jss",
+      javascript:
+        "jss",
 
       "react js":
         "react-js",
@@ -997,24 +1173,29 @@ function Courses({
       python:
         "python",
 
-      ml: "ml",
+      ml:
+        "ml",
 
       "machine learning":
         "ml",
     };
+
 
     const courseId =
       courseMap[
         normalized
       ];
 
+
     if (!courseId) {
       console.error(
         "❌ COURSE NOT FOUND:",
         title
       );
+
       return;
     }
+
 
     const localCourse =
       courseContent.find(
@@ -1023,18 +1204,22 @@ function Courses({
           courseId
       );
 
+
     if (!localCourse) {
       console.error(
         "❌ LOCAL COURSE NOT FOUND:",
         courseId
       );
+
       return;
     }
+
 
     navigate(
       `/course/${localCourse.id}`
     );
   }
+
 
   return (
     <section className="panel courses-panel">
@@ -1048,9 +1233,11 @@ function Courses({
         }
       />
 
+
       <div className="courses-list">
 
         {courses.length === 0 ? (
+
           <div className="panel-empty">
 
             No enrolled courses yet.
@@ -1066,7 +1253,9 @@ function Courses({
             </button>
 
           </div>
+
         ) : (
+
           courses
             .slice(0, 5)
             .map(
@@ -1074,6 +1263,7 @@ function Courses({
                 course,
                 index
               ) => (
+
                 <div
                   className="course-row"
                   key={
@@ -1091,6 +1281,7 @@ function Courses({
 
                   </div>
 
+
                   <div className="course-info">
 
                     <strong>
@@ -1105,6 +1296,7 @@ function Courses({
                     </span>
 
                   </div>
+
 
                   <button
                     className="play-button"
@@ -1122,6 +1314,7 @@ function Courses({
                 </div>
               )
             )
+
         )}
 
       </div>
@@ -1131,6 +1324,9 @@ function Courses({
 }
 
 
+// ======================================================
+// COMPLETION PIE CHART
+// ======================================================
 
 function TimeSpending({
   data,
@@ -1142,6 +1338,7 @@ function TimeSpending({
       <PanelHeader
         title="Completion"
       />
+
 
       <div
         className="chart-wrapper"
@@ -1178,7 +1375,10 @@ function TimeSpending({
             >
 
               {data.map(
-                (entry, index) => (
+                (
+                  entry,
+                  index
+                ) => (
                   <Cell
                     key={`cell-${index}`}
                     fill={
@@ -1192,6 +1392,7 @@ function TimeSpending({
 
             </Pie>
 
+
             <Tooltip
               formatter={(value) =>
                 `${Number(
@@ -1203,6 +1404,7 @@ function TimeSpending({
           </PieChart>
 
         </ResponsiveContainer>
+
 
         <div
           style={{
@@ -1231,6 +1433,7 @@ function TimeSpending({
             %
           </strong>
 
+
           <span
             style={{
               fontSize: "12px",
@@ -1243,6 +1446,7 @@ function TimeSpending({
         </div>
 
       </div>
+
 
       <div className="chart-caption">
 
@@ -1264,6 +1468,9 @@ function TimeSpending({
 }
 
 
+// ======================================================
+// AI RECOMMENDATIONS
+// ======================================================
 
 function Others({
   recommendations,
@@ -1282,9 +1489,11 @@ function Others({
         }
       />
 
+
       <div className="recommendations-list">
 
         {loading ? (
+
           <div className="panel-empty">
 
             <Sparkles
@@ -1296,8 +1505,10 @@ function Others({
             </span>
 
           </div>
+
         ) : recommendations.length ===
           0 ? (
+
           <div className="panel-empty">
 
             <Sparkles
@@ -1319,7 +1530,9 @@ function Others({
             </div>
 
           </div>
+
         ) : (
+
           recommendations
             .slice(0, 3)
             .map(
@@ -1348,6 +1561,7 @@ function Others({
                       />
                     </div>
 
+
                     <div className="recommendation-info">
 
                       <strong>
@@ -1365,6 +1579,7 @@ function Others({
 
                     </div>
 
+
                     <button
                       className="recommendation-btn"
                       onClick={() =>
@@ -1380,6 +1595,7 @@ function Others({
                 );
               }
             )
+
         )}
 
       </div>
@@ -1389,6 +1605,9 @@ function Others({
 }
 
 
+// ======================================================
+// STUDY CALENDAR
+// ======================================================
 
 function LiveClasses() {
   const [month, setMonth] =
@@ -1401,12 +1620,14 @@ function LiveClasses() {
       new Date().getFullYear()
     );
 
+
   const date =
     new Date(
       year,
       month,
       1
     );
+
 
   const monthName =
     date.toLocaleString(
@@ -1416,6 +1637,7 @@ function LiveClasses() {
       }
     );
 
+
   const daysInMonth =
     new Date(
       year,
@@ -1423,8 +1645,10 @@ function LiveClasses() {
       0
     ).getDate();
 
+
   const firstDay =
     date.getDay();
+
 
   function previousMonth() {
     if (month === 0) {
@@ -1439,6 +1663,7 @@ function LiveClasses() {
     }
   }
 
+
   function nextMonth() {
     if (month === 11) {
       setMonth(0);
@@ -1452,6 +1677,7 @@ function LiveClasses() {
     }
   }
 
+
   return (
     <section className="panel live-panel">
 
@@ -1462,6 +1688,7 @@ function LiveClasses() {
         </h2>
 
       </div>
+
 
       <div className="calendar">
 
@@ -1477,6 +1704,7 @@ function LiveClasses() {
             />
           </button>
 
+
           <select
             value={month}
             onChange={(e) =>
@@ -1487,10 +1715,14 @@ function LiveClasses() {
               )
             }
           >
+
             {Array.from({
               length: 12,
             }).map(
-              (_, index) => (
+              (
+                _,
+                index
+              ) => (
                 <option
                   value={index}
                   key={index}
@@ -1508,7 +1740,9 @@ function LiveClasses() {
                 </option>
               )
             )}
+
           </select>
+
 
           <select
             value={year}
@@ -1520,7 +1754,12 @@ function LiveClasses() {
               )
             }
           >
-            {[2025, 2026, 2027].map(
+
+            {[
+              2025,
+              2026,
+              2027,
+            ].map(
               (y) => (
                 <option
                   value={y}
@@ -1530,7 +1769,9 @@ function LiveClasses() {
                 </option>
               )
             )}
+
           </select>
+
 
           <button
             onClick={
@@ -1544,9 +1785,11 @@ function LiveClasses() {
 
         </div>
 
+
         <div className="calendar-title">
           {monthName} {year}
         </div>
+
 
         <div className="weekdays">
 
@@ -1560,7 +1803,9 @@ function LiveClasses() {
             "Sa",
           ].map(
             (day) => (
-              <span key={day}>
+              <span
+                key={day}
+              >
                 {day}
               </span>
             )
@@ -1568,12 +1813,16 @@ function LiveClasses() {
 
         </div>
 
+
         <div className="calendar-days">
 
           {Array.from({
             length: firstDay,
           }).map(
-            (_, index) => (
+            (
+              _,
+              index
+            ) => (
               <span
                 className="empty-day"
                 key={`empty-${index}`}
@@ -1581,11 +1830,15 @@ function LiveClasses() {
             )
           )}
 
+
           {Array.from({
             length:
               daysInMonth,
           }).map(
-            (_, index) => {
+            (
+              _,
+              index
+            ) => {
 
               const day =
                 index + 1;
@@ -1600,6 +1853,7 @@ function LiveClasses() {
                   now.getMonth() &&
                 year ===
                   now.getFullYear();
+
 
               return (
                 <button
@@ -1620,6 +1874,7 @@ function LiveClasses() {
 
       </div>
 
+
       <div className="class-list">
 
         <div className="class-item">
@@ -1637,6 +1892,7 @@ function LiveClasses() {
 
           </div>
 
+
           <CalendarDays
             size={18}
           />
@@ -1650,7 +1906,6 @@ function LiveClasses() {
 }
 
 
-
 function PanelHeader({
   title,
   action,
@@ -1661,6 +1916,7 @@ function PanelHeader({
       <h2>
         {title}
       </h2>
+
 
       {action && (
         <button
@@ -1673,5 +1929,6 @@ function PanelHeader({
     </div>
   );
 }
+
 
 export default Dashboard;

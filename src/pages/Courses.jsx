@@ -71,9 +71,6 @@ export default function Courses() {
     load();
   }, []);
 
-  /* =====================================================
-     ENROLL
-  ===================================================== */
 
   async function enroll(courseId) {
     try {
@@ -96,9 +93,7 @@ export default function Courses() {
     }
   }
 
-  /* =====================================================
-     LOGOUT
-  ===================================================== */
+
 
   function logout() {
     localStorage.removeItem("token");
@@ -109,9 +104,6 @@ export default function Courses() {
     });
   }
 
-  /* =====================================================
-     SIDEBAR
-  ===================================================== */
 
   const menuItems = [
     {
@@ -147,9 +139,7 @@ export default function Courses() {
     },
   ];
 
-  /* =====================================================
-     FILTER
-  ===================================================== */
+
 
   const enrolledIds = new Set(
     enrolled.map(
@@ -170,9 +160,6 @@ export default function Courses() {
         )
   );
 
-  /* =====================================================
-     UI
-  ===================================================== */
 
   return (
     <div className="simple-page">

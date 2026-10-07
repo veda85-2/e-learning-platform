@@ -27,10 +27,6 @@ export default function Quiz() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
 
-  // =========================================================
-  // LOAD QUIZ
-  // =========================================================
-
   useEffect(() => {
     loadQuiz();
   }, [courseId]);
@@ -58,18 +54,7 @@ export default function Quiz() {
         response.data?.data ||
         response.data;
 
-      /*
-       * Support common backend structures:
-       *
-       * {
-       *   quiz: {...},
-       *   questions: [...]
-       * }
-       *
-       * OR
-       *
-       * [...]
-       */
+      
 
       if (Array.isArray(data)) {
         setQuestions(data);
@@ -97,10 +82,7 @@ export default function Quiz() {
     }
   }
 
-  // =========================================================
-  // SELECT ANSWER
-  // =========================================================
-
+ 
   function selectAnswer(questionId, answer) {
     setAnswers((previous) => ({
       ...previous,
@@ -108,10 +90,7 @@ export default function Quiz() {
     }));
   }
 
-  // =========================================================
-  // NEXT QUESTION
-  // =========================================================
-
+  
   function nextQuestion() {
     if (
       currentIndex <
@@ -123,10 +102,6 @@ export default function Quiz() {
     }
   }
 
-  // =========================================================
-  // PREVIOUS QUESTION
-  // =========================================================
-
   function previousQuestion() {
     if (currentIndex > 0) {
       setCurrentIndex(
@@ -135,14 +110,21 @@ export default function Quiz() {
     }
   }
 
-  // =========================================================
-  // SUBMIT QUIZ
-  // =========================================================
 
   async function submitQuiz() {
     try {
       setSubmitting(true);
       setError("");
+
+      const quizResult =
+  response.data?.data ||
+  response.data;
+
+setResult(quizResult);
+
+
+
+saveQuizCompletion(score);
 
       console.log(
         "📤 SUBMITTING QUIZ:",
@@ -161,26 +143,84 @@ export default function Quiz() {
        * We send the answers object directly.
        */
 
-      const response = await API.post(
-        `/quizzes/${
-          quiz?._id ||
-          quiz?.id ||
-          courseId
-        }/submit`,
-        {
-          answers,
-        }
-      );
+   const response = await API.post(
+  `/quizzes/${quiz?._id || quiz?.id || courseId}/submit`,
+  { answers }
+);
 
+const resultData =
+  response.data?.data || response.data;
+
+setResult(resultData);
+
+// ========================================
+// SAVE QUIZ PROGRESS LOCALLY
+// ========================================
+
+const score =
+  Number(
+    resultData?.score ??
+    resultData?.percentage ??
+    0
+  ) || 0;
+
+try {
+  const existingProgress = JSON.parse(
+    localStorage.getItem(
+      "edusphere_quiz_progress"
+    ) || "{}"
+  );
+
+  existingProgress[courseId] = {
+    completed: true,
+    score,
+    completedAt: new Date().toISOString(),
+  };
+
+  localStorage.setItem(
+    "edusphere_quiz_progress",
+    JSON.stringify(existingProgress)
+  );
+
+  window.dispatchEvent(
+    new Event("edusphere-progress-updated")
+  );
+} catch (error) {
+  console.error(
+    "Failed to save quiz progress:",
+    error
+  );
+}
       console.log(
         "✅ QUIZ RESULT:",
         response.data
       );
 
-      setResult(
-        response.data?.data ||
-          response.data
-      );
+    
+
+      function saveQuizCompletion(score) {
+  const key = "edusphere_quiz_progress";
+
+  const existing = JSON.parse(
+    localStorage.getItem(key) || "{}"
+  );
+
+  existing[courseId] = {
+    completed: true,
+    score: Number(
+      String(score).replace("%", "")
+    ) || 0,
+  };
+
+  localStorage.setItem(
+    key,
+    JSON.stringify(existing)
+  );
+
+  window.dispatchEvent(
+    new Event("edusphere-progress-updated")
+  );
+}
     } catch (err) {
       console.error(
         "❌ QUIZ SUBMIT ERROR:",
@@ -195,6 +235,77 @@ export default function Quiz() {
       setSubmitting(false);
     }
   }
+
+  const hardcodedLessonStats = useMemo(() => {
+  let totalLessons = 0;
+  let completedLessons = 0;
+
+  courseContent.forEach((course) => {
+    const modules = course?.modules || [];
+
+    totalLessons += modules.length;
+
+    let completed = [];
+
+    try {
+      completed = JSON.parse(
+        localStorage.getItem(
+          `edusphere_progress_${course.id}`
+        ) || "[]"
+      );
+    } catch {
+      completed = [];
+    }
+
+    completedLessons += modules.filter(
+      (module) =>
+        completed.includes(module.id)
+    ).length;
+  });
+
+  return {
+    totalLessons,
+    completedLessons,
+  };
+}, [localProgressVersion]);
+
+
+const quizStats = useMemo(() => {
+  let quizProgress = {};
+
+  try {
+    quizProgress = JSON.parse(
+      localStorage.getItem(
+        "edusphere_quiz_progress"
+      ) || "{}"
+    );
+  } catch {
+    quizProgress = {};
+  }
+
+  const completedQuizzes = Object.values(
+    quizProgress
+  ).filter(
+    (quiz) => quiz?.completed
+  );
+
+  const scores = completedQuizzes
+    .map((quiz) => Number(quiz.score))
+    .filter((score) => Number.isFinite(score));
+
+  const averageScore =
+    scores.length > 0
+      ? scores.reduce(
+          (sum, score) => sum + score,
+          0
+        ) / scores.length
+      : 0;
+
+  return {
+    completedQuizzes: completedQuizzes.length,
+    averageScore,
+  };
+}, [localProgressVersion]);
 
   // =========================================================
   // LOADING

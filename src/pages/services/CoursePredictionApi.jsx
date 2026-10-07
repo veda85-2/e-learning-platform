@@ -394,11 +394,7 @@ export function getFallbackRecommendations({
     );
 }
 
-/*
-=========================================================
-FILTER RECOMMENDATIONS
-=========================================================
-*/
+
 
 export function filterRecommendations({
   recommendations = [],
@@ -455,19 +451,10 @@ export function filterRecommendations({
           canonical
         );
 
-      /*
-      Course doesn't exist
-      in LMS.
-      */
-
+      
       if (!actualTitle) {
         return null;
       }
-
-      /*
-      Don't recommend
-      current course.
-      */
 
       if (
         canonical ===
@@ -476,10 +463,7 @@ export function filterRecommendations({
         return null;
       }
 
-      /*
-      Don't recommend
-      already enrolled.
-      */
+     
 
       if (
         enrolledSet.has(
@@ -489,9 +473,6 @@ export function filterRecommendations({
         return null;
       }
 
-      /*
-      Remove duplicates.
-      */
 
       if (
         seen.has(canonical)
@@ -525,11 +506,6 @@ export function filterRecommendations({
     );
 }
 
-/*
-=========================================================
-TEST BACKEND ML CONNECTION
-=========================================================
-*/
 
 export async function testMLConnection() {
   try {
