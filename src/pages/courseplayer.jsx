@@ -25,37 +25,59 @@ import "./courseplayer.css";
 export default function CoursePlayer() {
   const navigate = useNavigate();
   const { courseId } = useParams();
-  const PROGRESS_KEY = `edusphere_progress_${courseId}`;
 
- 
   const course = courses.find(
     (item) => item.id === courseId
   );
 
-
-  const [
-    selectedModule,
-    setSelectedModule,
-  ] = useState(
+  const [selectedModule, setSelectedModule] = useState(
     course?.modules?.[0] || null
   );
 
+  // =========================
+  // USER + PROGRESS
+  // =========================
 
+  const user = JSON.parse(
+    localStorage.getItem("user") || "{}"
+  );
 
-// const currentUser =
-//   JSON.parse(localStorage.getItem("user")) || {};
+  const userId =
+    user.id ||
+    user.email ||
+    user._id ||
+    "guest";
 
-// const userId =
-//   currentUser.id ||
-//   currentUser.email ||
-//   currentUser._id ||
-//   "guest";
+  const progressKey =
+    `edusphere_progress_${userId}_${courseId}`;
 
-const progressKey =
-  `edusphere_progress_${userId}_${courseId}`;
+  const [completedLessons, setCompletedLessons] =
+    useState(() => {
+      try {
+        const saved = JSON.parse(
+          localStorage.getItem(progressKey) || "[]"
+        );
 
-const [completedLessons, setCompletedLessons] =
-  useState(() => {
+        return Array.isArray(saved)
+          ? saved
+          : [];
+      } catch {
+        return [];
+      }
+    });
+
+  // =========================
+  // YOUTUBE REFS
+  // =========================
+
+  const iframeRef = useRef(null);
+  const youtubePlayerRef = useRef(null);
+
+  // =========================
+  // GET COMPLETED LESSONS
+  // =========================
+
+  const getCompletedLessons = () => {
     try {
       const saved = JSON.parse(
         localStorage.getItem(progressKey) || "[]"
@@ -67,252 +89,16 @@ const [completedLessons, setCompletedLessons] =
     } catch {
       return [];
     }
-  });
-
-
-
-  const iframeRef = useRef(null);
-  const youtubePlayerRef = useRef(null);
-
-
-useEffect(() => {
-  if (!selectedModule?.videoUrl) {
-    return;
-  }
-
-  const videoId = getYouTubeVideoId(
-    selectedModule.videoUrl
-  );
-
-  if (!videoId) {
-    return;
-  }
-
-  let player = null;
-  let progressTimer = null;
-  let cancelled = false;
-
-  const completeLesson = () => {
-    if (cancelled) return;
-
-    console.log(
-      "🎉 VIDEO COMPLETED:",
-      selectedModule.id
-    );
-
-    markLessonComplete(
-      selectedModule.id
-    );
   };
 
-  const startTracking = () => {
-    if (
-      cancelled ||
-      !window.YT ||
-      !window.YT.Player ||
-      !iframeRef.current
-    ) {
-      return;
-    }
+  // =========================
+  // MARK LESSON COMPLETE
+  // =========================
 
-    try {
-      player = new window.YT.Player(
-        iframeRef.current,
-        {
-          events: {
-            onReady: (event) => {
-              console.log(
-                "🎥 YouTube player ready"
-              );
-
-              const checkProgress = () => {
-                if (cancelled || !player) {
-                  return;
-                }
-
-                try {
-                  const duration =
-                    player.getDuration();
-
-                  const currentTime =
-                    player.getCurrentTime();
-
-                  if (
-                    duration > 0 &&
-                    currentTime > 0
-                  ) {
-                    const percentage =
-                      (currentTime / duration) *
-                      100;
-
-                    console.log(
-                      `🎬 Video progress: ${percentage.toFixed(
-                        1
-                      )}%`
-                    );
-
-                    // Complete at 90%
-                    if (percentage >= 90) {
-                      completeLesson();
-
-                      if (progressTimer) {
-                        clearInterval(
-                          progressTimer
-                        );
-                      }
-                    }
-                  }
-                } catch (error) {
-                  // Player may not be ready yet
-                }
-              };
-
-              progressTimer =
-                setInterval(
-                  checkProgress,
-                  1000
-                );
-            },
-
-            onStateChange: (event) => {
-              console.log(
-                "YouTube state:",
-                event.data
-              );
-
-              // 0 = ENDED
-              if (
-                window.YT &&
-                event.data ===
-                  window.YT.PlayerState
-                    .ENDED
-              ) {
-                completeLesson();
-
-                if (progressTimer) {
-                  clearInterval(
-                    progressTimer
-                  );
-                }
-              }
-            },
-
-            onError: (event) => {
-              console.error(
-                "YouTube error:",
-                event.data
-              );
-            },
-          },
-        }
-      );
-    } catch (error) {
-      console.error(
-        "❌ YouTube player initialization failed:",
-        error
-      );
-    }
-  };
-
-
-
-  if (
-    window.YT &&
-    window.YT.Player
-  ) {
-    setTimeout(() => {
-      startTracking();
-    }, 500);
-  } else {
-  
-
-    let script =
-      document.querySelector(
-        'script[src="https://www.youtube.com/iframe_api"]'
-      );
-
-    if (!script) {
-      script =
-        document.createElement(
-          "script"
-        );
-
-      script.src =
-        "https://www.youtube.com/iframe_api";
-
-      script.async = true;
-
-      document.body.appendChild(
-        script
-      );
-    }
-
-    const oldCallback =
-      window.onYouTubeIframeAPIReady;
-
-    window.onYouTubeIframeAPIReady =
-      () => {
-        if (
-          typeof oldCallback ===
-          "function"
-        ) {
-          oldCallback();
-        }
-
-        if (!cancelled) {
-          setTimeout(() => {
-            startTracking();
-          }, 500);
-        }
-      };
-  }
-
-  
-  return () => {
-    cancelled = true;
-
-    if (progressTimer) {
-      clearInterval(progressTimer);
-    }
-
-    if (player) {
-      try {
-        player.destroy();
-      } catch {
-        // Ignore cleanup error
-      }
-    }
-  };
-}, [
-  selectedModule?.id,
-  selectedModule?.videoUrl,
-]);
-
-  const getCompletedLessons = () => {
-    try {
-      const saved = JSON.parse(
-        localStorage.getItem(
-          PROGRESS_KEY
-        ) || "[]"
-      );
-
-      return Array.isArray(saved)
-        ? saved
-        : [];
-    } catch {
-      return [];
-    }
-  };
-
-  
-
-  const markLessonComplete = (
-    moduleId
-  ) => {
+  const markLessonComplete = (moduleId) => {
     if (!moduleId) return;
 
-    const completed =
-      getCompletedLessons();
+    const completed = getCompletedLessons();
 
     if (completed.includes(moduleId)) {
       return;
@@ -324,16 +110,15 @@ useEffect(() => {
     ];
 
     localStorage.setItem(
-      PROGRESS_KEY,
+      progressKey,
       JSON.stringify(updated)
     );
 
     setCompletedLessons(updated);
 
+    // Tell Dashboard that progress changed
     window.dispatchEvent(
-      new Event(
-        "edusphere-progress-updated"
-      )
+      new Event("edusphere-progress-updated")
     );
 
     console.log(
@@ -342,6 +127,9 @@ useEffect(() => {
     );
   };
 
+  // =========================
+  // YOUTUBE VIDEO ID
+  // =========================
 
   const getYouTubeVideoId = (url) => {
     if (!url) return null;
@@ -351,9 +139,7 @@ useEffect(() => {
 
       // youtu.be/VIDEO_ID
       if (
-        parsed.hostname.includes(
-          "youtu.be"
-        )
+        parsed.hostname.includes("youtu.be")
       ) {
         return parsed.pathname
           .slice(1)
@@ -362,9 +148,7 @@ useEffect(() => {
 
       // youtube.com/watch?v=VIDEO_ID
       if (
-        parsed.hostname.includes(
-          "youtube.com"
-        )
+        parsed.hostname.includes("youtube.com")
       ) {
         const videoId =
           parsed.searchParams.get("v");
@@ -373,11 +157,9 @@ useEffect(() => {
           return videoId;
         }
 
-       
+        // youtube.com/embed/VIDEO_ID
         if (
-          parsed.pathname.startsWith(
-            "/embed/"
-          )
+          parsed.pathname.startsWith("/embed/")
         ) {
           return parsed.pathname
             .split("/embed/")[1]
@@ -390,6 +172,10 @@ useEffect(() => {
       return null;
     }
   };
+
+  // =========================
+  // EMBED URL
+  // =========================
 
   const getEmbedUrl = (url) => {
     if (!url) return "";
@@ -413,6 +199,201 @@ useEffect(() => {
       `&origin=${encodeURIComponent(origin)}`
     );
   };
+
+  // =====================================================
+  // YOUTUBE IFRAME API
+  // =====================================================
+
+  useEffect(() => {
+    if (!selectedModule?.videoUrl) {
+      return;
+    }
+
+    const videoId =
+      getYouTubeVideoId(
+        selectedModule.videoUrl
+      );
+
+    if (!videoId) {
+      return;
+    }
+
+    let cancelled = false;
+    let interval = null;
+
+    const createPlayer = () => {
+      if (
+        cancelled ||
+        !iframeRef.current ||
+        !window.YT ||
+        !window.YT.Player
+      ) {
+        return;
+      }
+
+      // Destroy previous player
+      if (youtubePlayerRef.current) {
+        try {
+          youtubePlayerRef.current.destroy();
+        } catch {
+          // Ignore cleanup errors
+        }
+
+        youtubePlayerRef.current = null;
+      }
+
+      try {
+        youtubePlayerRef.current =
+          new window.YT.Player(
+            iframeRef.current,
+            {
+              events: {
+                onReady: () => {
+                  console.log(
+                    "🎥 YouTube player ready"
+                  );
+                },
+
+                onStateChange: (event) => {
+                  if (
+                    event.data ===
+                    window.YT.PlayerState.ENDED
+                  ) {
+                    console.log(
+                      "🎉 VIDEO FINISHED:",
+                      selectedModule.id
+                    );
+
+                    markLessonComplete(
+                      selectedModule.id
+                    );
+                  }
+                },
+
+                onError: (event) => {
+                  console.error(
+                    "YouTube error:",
+                    event.data
+                  );
+                },
+              },
+            }
+          );
+      } catch (error) {
+        console.error(
+          "YouTube player error:",
+          error
+        );
+      }
+    };
+
+    // =================================================
+    // API ALREADY LOADED
+    // =================================================
+
+    if (
+      window.YT &&
+      window.YT.Player
+    ) {
+      const timeout = setTimeout(() => {
+        createPlayer();
+      }, 100);
+
+      return () => {
+        cancelled = true;
+        clearTimeout(timeout);
+
+        if (youtubePlayerRef.current) {
+          try {
+            youtubePlayerRef.current.destroy();
+          } catch {
+            // Ignore
+          }
+
+          youtubePlayerRef.current = null;
+        }
+      };
+    }
+
+    // =================================================
+    // LOAD YOUTUBE API
+    // =================================================
+
+    const existingScript =
+      document.querySelector(
+        'script[src="https://www.youtube.com/iframe_api"]'
+      );
+
+    if (!existingScript) {
+      const script =
+        document.createElement("script");
+
+      script.src =
+        "https://www.youtube.com/iframe_api";
+
+      script.async = true;
+
+      document.body.appendChild(script);
+    }
+
+    // =================================================
+    // WAIT FOR YOUTUBE API
+    // =================================================
+
+    const previousCallback =
+      window.onYouTubeIframeAPIReady;
+
+    window.onYouTubeIframeAPIReady = () => {
+      if (
+        typeof previousCallback ===
+        "function"
+      ) {
+        previousCallback();
+      }
+
+      if (!cancelled) {
+        createPlayer();
+      }
+    };
+
+    // If API is already loading,
+    // check periodically until ready.
+    interval = setInterval(() => {
+      if (
+        window.YT &&
+        window.YT.Player
+      ) {
+        clearInterval(interval);
+
+        if (!cancelled) {
+          createPlayer();
+        }
+      }
+    }, 200);
+
+    return () => {
+      cancelled = true;
+
+      if (interval) {
+        clearInterval(interval);
+      }
+
+      if (
+        youtubePlayerRef.current
+      ) {
+        try {
+          youtubePlayerRef.current.destroy();
+        } catch {
+          // Ignore cleanup errors
+        }
+
+        youtubePlayerRef.current = null;
+      }
+    };
+  }, [
+    selectedModule?.id,
+    selectedModule?.videoUrl,
+  ]);
 
   // =====================================================
   // COURSE NOT FOUND
@@ -471,208 +452,6 @@ useEffect(() => {
       : 0;
 
   // =====================================================
-  // YOUTUBE IFRAME API
-  //
-  // This uses the EXISTING iframe.
-  // It does not replace your video with a div.
-  // =====================================================
-
-  useEffect(() => {
-    if (!selectedModule?.videoUrl) {
-      return;
-    }
-
-    const videoId =
-      getYouTubeVideoId(
-        selectedModule.videoUrl
-      );
-
-    if (!videoId) {
-      return;
-    }
-
-    let cancelled = false;
-
-    const createPlayer = () => {
-      if (
-        cancelled ||
-        !iframeRef.current ||
-        !window.YT ||
-        !window.YT.Player
-      ) {
-        return;
-      }
-
-      // Destroy previous player
-      if (
-        youtubePlayerRef.current
-      ) {
-        try {
-          youtubePlayerRef.current.destroy();
-        } catch {
-          // Ignore cleanup errors
-        }
-
-        youtubePlayerRef.current =
-          null;
-      }
-
-      try {
-        youtubePlayerRef.current =
-          new window.YT.Player(
-            iframeRef.current,
-            {
-              events: {
-                onReady: () => {
-                  console.log(
-                    "🎥 YouTube player ready"
-                  );
-                },
-
-                onStateChange: (event) => {
-                  if (
-                    event.data ===
-                    window.YT.PlayerState
-                      .ENDED
-                  ) {
-                    console.log(
-                      "🎉 VIDEO FINISHED:",
-                      selectedModule.id
-                    );
-
-                    markLessonComplete(
-                      selectedModule.id
-                    );
-                  }
-                },
-              },
-            }
-          );
-      } catch (error) {
-        console.error(
-          "YouTube player error:",
-          error
-        );
-      }
-    };
-
-    // =================================================
-    // API ALREADY LOADED
-    // =================================================
-
-    if (
-      window.YT &&
-      window.YT.Player
-    ) {
-      // Give React time to finish rendering iframe
-      setTimeout(() => {
-        createPlayer();
-      }, 100);
-
-      return () => {
-        cancelled = true;
-
-        if (
-          youtubePlayerRef.current
-        ) {
-          try {
-            youtubePlayerRef.current.destroy();
-          } catch {
-            // Ignore
-          }
-
-          youtubePlayerRef.current =
-            null;
-        }
-      };
-    }
-
-    // =================================================
-    // LOAD YOUTUBE API
-    // =================================================
-
-    const existingScript =
-      document.querySelector(
-        'script[src="https://www.youtube.com/iframe_api"]'
-      );
-
-    if (!existingScript) {
-      const script =
-        document.createElement(
-          "script"
-        );
-
-      script.src =
-        "https://www.youtube.com/iframe_api";
-
-      script.async = true;
-
-      document.body.appendChild(
-        script
-      );
-    }
-
-    // =================================================
-    // WAIT FOR YOUTUBE API
-    // =================================================
-
-    const previousCallback =
-      window.onYouTubeIframeAPIReady;
-
-    window.onYouTubeIframeAPIReady =
-      () => {
-        if (
-          typeof previousCallback ===
-          "function"
-        ) {
-          previousCallback();
-        }
-
-        if (!cancelled) {
-          createPlayer();
-        }
-      };
-
-    // If API script was already loading,
-    // check periodically until ready.
-    const interval =
-      setInterval(() => {
-        if (
-          window.YT &&
-          window.YT.Player
-        ) {
-          clearInterval(interval);
-
-          if (!cancelled) {
-            createPlayer();
-          }
-        }
-      }, 200);
-
-    return () => {
-      cancelled = true;
-
-      clearInterval(interval);
-
-      if (
-        youtubePlayerRef.current
-      ) {
-        try {
-          youtubePlayerRef.current.destroy();
-        } catch {
-          // Ignore
-        }
-
-        youtubePlayerRef.current =
-          null;
-      }
-    };
-  }, [
-    selectedModule?.id,
-    selectedModule?.videoUrl,
-  ]);
-
-  // =====================================================
   // NEXT LESSON
   // =====================================================
 
@@ -722,9 +501,7 @@ useEffect(() => {
   // SELECT LESSON
   // =====================================================
 
-  const selectModule = (
-    module
-  ) => {
+  const selectModule = (module) => {
     setSelectedModule(module);
 
     window.scrollTo({
@@ -959,11 +736,6 @@ useEffect(() => {
             {selectedModule?.videoUrl ? (
 
               <div className="video-container">
-
-                {/* IMPORTANT:
-                    KEEP THIS AS AN IFRAME.
-                    Do NOT replace it with a div.
-                */}
 
                 <iframe
                   ref={iframeRef}

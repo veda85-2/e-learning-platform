@@ -106,35 +106,49 @@ function Dashboard() {
   // LISTEN FOR COURSE / QUIZ PROGRESS CHANGES
   // ======================================================
 
-  useEffect(() => {
-    const updateProgress = () => {
-      setLocalProgressVersion(
-        (value) => value + 1
-      );
-    };
+ useEffect(() => {
+  const updateProgress = () => {
+    console.log("📊 Progress updated - refreshing dashboard");
 
-    window.addEventListener(
+    setLocalProgressVersion(
+      (value) => value + 1
+    );
+  };
+
+  // CoursePlayer uses this event
+  window.addEventListener(
+    "edusphere-progress-updated",
+    updateProgress
+  );
+
+  // Keep this too in case other parts of the app use it
+  window.addEventListener(
+    "edusphere_progress_updated",
+    updateProgress
+  );
+
+  window.addEventListener(
+    "storage",
+    updateProgress
+  );
+
+  return () => {
+    window.removeEventListener(
+      "edusphere-progress-updated",
+      updateProgress
+    );
+
+    window.removeEventListener(
       "edusphere_progress_updated",
       updateProgress
     );
 
-    window.addEventListener(
+    window.removeEventListener(
       "storage",
       updateProgress
     );
-
-    return () => {
-      window.removeEventListener(
-        "edusphere_progress_updated",
-        updateProgress
-      );
-
-      window.removeEventListener(
-        "storage",
-        updateProgress
-      );
-    };
-  }, []);
+  };
+}, []);
 
 
   // ======================================================
