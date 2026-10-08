@@ -808,19 +808,27 @@
   }
 
   .course-player-layout {
-    grid-template-columns: 1fr;
-
+    display: flex;
+    flex-direction: column;
     margin: 15px auto;
   }
 
+  .lesson-content {
+    order: 1;
+    width: 100%;
+  }
+
   .course-module-sidebar {
+    order: 2;
+    width: 100%;
     position: static;
+    margin-top: 18px;
   }
 
   .module-list {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 5px;
+    gap: 8px;
   }
 
   .lesson-top h2 {
@@ -828,9 +836,8 @@
   }
 
   .video-placeholder {
-    min-height: 350px;
+    min-height: 280px;
   }
-
 }
 
 @media (max-width: 560px) {

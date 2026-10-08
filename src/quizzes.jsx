@@ -116,42 +116,20 @@ export default function Quiz() {
       setSubmitting(true);
       setError("");
 
-      const quizResult =
-  response.data?.data ||
-  response.data;
-
-setResult(quizResult);
-
-
-
-saveQuizCompletion(score);
-
       console.log(
         "📤 SUBMITTING QUIZ:",
         answers
       );
 
-      /*
-       * Most backends expect something similar to:
-       *
-       * {
-       *   answers: {
-       *      questionId: selectedAnswer
-       *   }
-       * }
-       *
-       * We send the answers object directly.
-       */
+      const response = await API.post(
+        `/quizzes/${quiz?._id || quiz?.id || courseId}/submit`,
+        { answers }
+      );
 
-   const response = await API.post(
-  `/quizzes/${quiz?._id || quiz?.id || courseId}/submit`,
-  { answers }
-);
+      const resultData =
+        response.data?.data || response.data;
 
-const resultData =
-  response.data?.data || response.data;
-
-setResult(resultData);
+      setResult(resultData);
 
 // ========================================
 // SAVE QUIZ PROGRESS LOCALLY

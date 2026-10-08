@@ -182,7 +182,10 @@ function Notes() {
 
           <button
             className="notes-nav-item"
-            onClick={() => navigate("/dashboard")}
+            onClick={() => {
+              navigate("/dashboard");
+              setSidebarOpen(false);
+            }}
           >
             <Grid2X2 size={19} />
             <span>Dashboard</span>
@@ -190,7 +193,10 @@ function Notes() {
 
           <button
             className="notes-nav-item"
-            onClick={() => navigate("/my-courses")}
+            onClick={() => {
+              navigate("/courses");
+              setSidebarOpen(false);
+            }}
           >
             <BookOpen size={19} />
             <span>My Courses</span>
@@ -198,16 +204,21 @@ function Notes() {
 
           <button
             className="notes-nav-item"
+            onClick={() => {
+              navigate("/course-recommendations");
+              setSidebarOpen(false);
+            }}
           >
             <Bookmark size={19} />
             <span>Course Recommendations</span>
           </button>
 
           <button
-            className="notes-nav-item"
-            onClick={() =>
-              navigate("/course-recommendations")
-            }
+            className="notes-nav-item active"
+            onClick={() => {
+              navigate("/study-material");
+              setSidebarOpen(false);
+            }}
           >
             <MessageCircle size={19} />
             <span>Study Materials</span>
@@ -215,23 +226,18 @@ function Notes() {
 
           <button
             className="notes-nav-item"
-            onClick={() => navigate("/projects")}
+            onClick={() => {
+              navigate("/profile");
+              setSidebarOpen(false);
+            }}
           >
             <FolderKanban size={19} />
-            <span>Profile</span>
+            <span>My Profile</span>
           </button>
 
         </nav>
 
         <div className="notes-sidebar-bottom">
-
-          <button
-            className="notes-nav-item"
-            onClick={() => navigate("/settings")}
-          >
-            <Settings size={19} />
-            <span>Settings</span>
-          </button>
 
           <button
             className="notes-nav-item"
@@ -243,7 +249,10 @@ function Notes() {
 
           <button
             className="notes-upgrade"
-            onClick={() => navigate("/premium")}
+            onClick={() => {
+              navigate("/course-recommendations");
+              setSidebarOpen(false);
+            }}
           >
             💎 Upgrade Premium
           </button>

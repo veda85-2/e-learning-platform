@@ -83,60 +83,71 @@ const handleLogin = async (e) => {
 };
 
   return (
-    <div className="h-screen w-full overflow-hidden bg-white flex">
+    <div className="min-h-screen w-full bg-white flex flex-col md:flex-row overflow-x-hidden">
 
-   
+      {/* Left Illustration (Tablet/Desktop) */}
       <div
         className="
           hidden
-          h-screen
+          min-h-screen
           w-1/2
           items-center
           justify-center
-          overflow-hidden   
+          bg-[#f6fbf9]
+          p-8
           md:flex
         "
       >
         <img
           src={loginImage}
           alt="Healthcare"
-          className="h-[65%] max-w-200 object-contain"
+          className="max-h-[60vh] max-w-[85%] object-contain drop-shadow-md"
         />
       </div>
 
-  
+      {/* Right Form Container */}
       <div
         className="
           flex
-          h-screen
+          min-h-screen
           w-full
           items-center
           justify-center
-          overflow-hidden
           bg-white
           px-4
+          py-8
           sm:px-6
+          sm:py-12
           md:w-1/2
+          overflow-y-auto
         "
       >
-
-    
         <div
           className="
             w-full
             max-w-md
-            rounded-[30px]
+            rounded-[28px]
             bg-[#08BFAF]
             px-6
-            py-6
+            py-7
             shadow-[0_8px_35px_rgba(0,0,0,0.10)]
             sm:px-8
-            sm:py-7
+            sm:py-8
             md:px-9
           "
         >
+          {/* Logo / Brand Header */}
+          <div className="mb-4 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => navigate("/")}
+              className="text-xs font-semibold text-gray-800 hover:text-black flex items-center gap-1 transition-colors"
+            >
+              ← Back to Home
+            </button>
+            <span className="text-xs font-bold uppercase tracking-wider text-black/60">EDUsphere</span>
+          </div>
 
-     
           <h1 className="text-center text-2xl font-bold text-black sm:text-3xl">
             Login
           </h1>

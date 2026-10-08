@@ -669,6 +669,13 @@ export default function CourseRecommendations() {
 
     <div className="recommendation-layout">
 
+      {/* MOBILE OVERLAY */}
+      {sidebarOpen && (
+        <div
+          className="recommendation-overlay"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
       {/* =================================================
           SIDEBAR

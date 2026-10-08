@@ -274,22 +274,19 @@ async function saveProfile(e) {
       label: "Dashboard",
       path: "/dashboard",
     },
-
-      {
-      icon: Bookmark,
-      label: "My-courses",
+    {
+      icon: BookOpen,
+      label: "My Courses",
       path: "/courses",
     },
     {
-      icon: BookOpen,
-      label: "Course-Recommendations",
+      icon: Bookmark,
+      label: "Course Recommendations",
       path: "/course-recommendations",
     },
-  
-   
     {
       icon: FolderKanban,
-      label: "study-material",
+      label: "Study Material",
       path: "/study-material",
     },
     {
@@ -298,7 +295,6 @@ async function saveProfile(e) {
       path: "/profile",
       active: true,
     },
-   
   ];
 
 

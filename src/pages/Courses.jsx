@@ -7,6 +7,7 @@ import {
   FolderKanban,
   Grid2X2,
   LogOut,
+  Menu,
   MessageCircle,
   Search,
   UserRound,
@@ -164,6 +165,14 @@ export default function Courses() {
   return (
     <div className="simple-page">
 
+      {/* MOBILE OVERLAY */}
+      {sidebarOpen && (
+        <div
+          className="profile-overlay"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* SIDEBAR */}
 
       <aside
@@ -255,15 +264,25 @@ export default function Courses() {
 
       <header className="simple-header">
 
-        <button
-          onClick={() =>
-            navigate("/dashboard")
-          }
-        >
-          <ArrowLeft size={18} />
+        <div className="simple-header-left">
+          <button
+            className="simple-mobile-menu"
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Open menu"
+          >
+            <Menu size={20} />
+          </button>
 
-          Dashboard
-        </button>
+          <button
+            className="simple-back-button"
+            onClick={() =>
+              navigate("/dashboard")
+            }
+          >
+            <ArrowLeft size={18} />
+            <span>Dashboard</span>
+          </button>
+        </div>
 
         <div className="simple-brand">
 
@@ -275,11 +294,11 @@ export default function Courses() {
 
         </div>
 
-        <button onClick={logout}>
+        <button className="simple-logout-btn" onClick={logout}>
 
           <LogOut size={18} />
 
-          Logout
+          <span>Logout</span>
 
         </button>
 
